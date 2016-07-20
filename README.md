@@ -1,4 +1,4 @@
-# Welcome to the Inkjet Plumber Home Page                                                        
+# Inkjet Plumber                                                        
 ## Overview
 Inkjet Plumber is an application for the Mac that allows you to send a small print job to
 one or more of your printers at an interval of your choosing. It was written with infrequent
