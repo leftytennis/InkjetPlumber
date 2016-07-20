@@ -1,0 +1,6 @@
+.qmake.stash
+build
+Makefile*
+moc_*
+*.pro.user*
+*.dmg

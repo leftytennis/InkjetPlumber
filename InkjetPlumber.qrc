@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file>InkjetPlumber.icns</file>
+        <file>icon.png</file>
+    </qresource>
+</RCC>
