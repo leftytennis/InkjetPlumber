@@ -315,17 +315,18 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     painter.drawText(0, 0, "Inkjet Plumber maintenance job sent to " + printer->printerName() + ": " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss."));
     painter.setPen(QPen(Qt::black));
 
+    int resolution = printer->resolution();
     int offset = 0;
 
-    if (job->cyan)          print_swatch(painter, &offset, 50, Qt::cyan);
-    if (job->magenta)       print_swatch(painter, &offset, 50, Qt::magenta);
-    if (job->yellow)        print_swatch(painter, &offset, 50, Qt::yellow);
-    if (job->black)         print_swatch(painter, &offset, 50, Qt::black);
-    if (job->gray)          print_swatch(painter, &offset, 50, Qt::gray);
-    if (job->light_gray)    print_swatch(painter, &offset, 50, Qt::lightGray);
-    if (job->red)           print_swatch(painter, &offset, 50, Qt::red);
-    if (job->green)         print_swatch(painter, &offset, 50, Qt::green);
-    if (job->blue)          print_swatch(painter, &offset, 50, Qt::blue);
+    if (job->cyan)          paint_swatch(printer, painter, &offset, 50, Qt::cyan);
+    if (job->magenta)       paint_swatch(printer, painter, &offset, 50, Qt::magenta);
+    if (job->yellow)        paint_swatch(printer, painter, &offset, 50, Qt::yellow);
+    if (job->black)         paint_swatch(printer, painter, &offset, 50, Qt::black);
+    if (job->gray)          paint_swatch(printer, painter, &offset, 50, Qt::gray);
+    if (job->light_gray)    paint_swatch(printer, painter, &offset, 50, Qt::lightGray);
+    if (job->red)           paint_swatch(printer, painter, &offset, 50, Qt::red);
+    if (job->green)         paint_swatch(printer, painter, &offset, 50, Qt::green);
+    if (job->blue)          paint_swatch(printer, painter, &offset, 50, Qt::blue);
 
     QPrinterInfo printer_info(*printer);
     QPageSize page_size(printer->pageLayout().pageSize());
@@ -353,7 +354,7 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     text += "paper height = " + QString::number(printer->paperRect().height()) + " dpi<br/>";
 
     painter.save();
-    painter.translate(0, 500);
+    painter.translate(0, resolution * 2);
 
     QTextDocument doc;
     doc.setDefaultFont(tahoma);
@@ -370,11 +371,12 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     return;
 }
 
-void MainWindow::print_swatch(QPainter& painter, int *x, int y, QColor color) const
+void MainWindow::paint_swatch(QPrinter* printer, QPainter& painter, int *x, int y, QColor color) const
 {
-    const int width = 150;
-    const int height = 150;
-    const int padding = 50;
+    const int resolution = printer->resolution();
+    const int width = resolution / 2;
+    const int height = resolution / 2;
+    const int padding = resolution / 6;
 
     QString color_name = color.name();
 
@@ -386,7 +388,7 @@ void MainWindow::print_swatch(QPainter& painter, int *x, int y, QColor color) co
 
     int text_width = fm.width(color_name);
     int center_text = *x + (width - text_width) / 2;
-    QRectF rect(center_text, y, 150, 150);
+    QRectF rect(center_text, y, width, height);
 
     painter.drawText(rect, color_name);
 
@@ -397,12 +399,12 @@ void MainWindow::print_swatch(QPainter& painter, int *x, int y, QColor color) co
     painter.setPen(QPen(color));
     painter.drawRect(*x, new_y, width, height);
 
-    for (int i = 0; i < 150; i+=10)
+    for (int i = 0; i < height; i+=10)
     {
         painter.drawLine(*x, new_y+i, *x+width, new_y+i+10);
     }
 
-    *x += 200;
+    *x += width + padding;
 
     return;
 }
@@ -482,13 +484,18 @@ void MainWindow::run_maint_job(MaintenanceJob* job)
 
 void MainWindow::setup_sparkle()
 {
+    QUrl url;
+    long interval;
 #if defined(INKJETPLUMBER_DEBUG)
-    long interval = (60*60*1);
+    interval = (1*3600); // one hour
+    url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=true";
 #else
-    long interval = (60*60*24);
+    interval = (24*3600); // 24 hours
+    url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=false";
 #endif
     if (updater_)
     {
+        updater_->setFeedURL(url);
         updater_->setUpdateCheckInterval(interval);
         QDateTime dt = updater_->lastUpdateCheckDate();
         log_message("Last update check performed at " + dt.toString("yyyy-MM-dd hh:mm:ss") + ".");
