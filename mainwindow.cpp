@@ -337,7 +337,7 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     text += "make and model = " + printer_info.makeAndModel() + "<br/>";
     text += "description = " + printer_info.description() + "<br/>";
     text += "location = " + printer_info.location() + "<br/>";
-    text += "resolution = " + QString::number(printer->resolution()) + "<br/>";
+    text += "resolution = " + QString::number(printer->resolution()) + " dpi<br/>";
     text += "state = " + get_state_string(printer->printerState()) + "<br/>";
     text += "duplex = " + get_duplex_string(printer->duplex()) + "<br/>";
     text += "color count = " + QString::number(printer->colorCount()) + "<br/>";
@@ -346,11 +346,11 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     page_size.name();
     text += "<strong>Page/Paper Information</strong><br/><br/>";
     text += "page size = " + page_size.name() + "<br/>";
-    text += "page width = " + QString::number(printer->pageRect().width()) + "<br/>";
-    text += "page height = " + QString::number(printer->pageRect().height()) + "<br/>";
+    text += "page width = " + QString::number(printer->pageRect().width()) + " dpi<br/>";
+    text += "page height = " + QString::number(printer->pageRect().height()) + " dpi<br/>";
     text += "paper size = " + printer->paperName() + "<br/>";
-    text += "paper width = " + QString::number(printer->paperRect().width()) + "<br/>";
-    text += "paper height = " + QString::number(printer->paperRect().height()) + "<br/>";
+    text += "paper width = " + QString::number(printer->paperRect().width()) + " dpi<br/>";
+    text += "paper height = " + QString::number(printer->paperRect().height()) + " dpi<br/>";
 
     painter.save();
     painter.translate(0, 500);
@@ -463,7 +463,6 @@ void MainWindow::run_maint_job(MaintenanceJob* job)
     printer.setPaperSize(QPrinter::Letter);
     printer.setPaperSource(QPrinter::Auto);
     printer.setPrinterName(job->printer_name);
-    printer.setResolution(300);
 
     paint_page(job, &printer);
 
