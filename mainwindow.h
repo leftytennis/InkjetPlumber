@@ -20,13 +20,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QAbstractTextDocumentLayout>
 #include <QAction>
 #include <QMainWindow>
 #include <QDateTime>
+#include <QDebug>
 #include <QMap>
 #include <QMapIterator>
 #include <QMenu>
 #include <QPageLayout>
+#include <QPageSetupDialog>
 #include <QPainter>
 #include <QPrintDialog>
 #include <QPrintEngine>
@@ -41,6 +44,7 @@
 #include <QStringList>
 #include <QStringListModel>
 #include <QSystemTrayIcon>
+#include <QTextDocument>
 #include <QTimer>
 
 #include "aboutdialog.h"
@@ -77,6 +81,7 @@ private slots:
 private:
 
     MaintenanceJob* find_maint_job(const QString& printer_name) const;
+    QString get_color_mode_string(QPrinter::ColorMode color_mode) const;
     QString get_duplex_string(QPrinter::DuplexMode mode) const;
     QString get_pagesize_string(const QPageSize& page_size) const;
     QString get_state_string(QPrinter::PrinterState state) const;
@@ -96,7 +101,6 @@ private:
     QStringList messages_;
     QStringListModel* model_;
     PreferencesDialog* preferences_dlg_;
-    QPrinter printer_;
     QSystemTrayIcon tray_;
     QTimer* timer_;
     Ui::MainWindow* ui;
