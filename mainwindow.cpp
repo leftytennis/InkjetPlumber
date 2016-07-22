@@ -26,7 +26,6 @@ MainWindow::MainWindow(SparkleAutoUpdater* updater, QWidget* parent)
     , app_menu_(nullptr)
     , model_(nullptr)
     , preferences_dlg_(nullptr)
-    , printer_(QPrinter::HighResolution)
     , timer_(nullptr)
     , ui(new Ui::MainWindow)
     , updater_(updater)
@@ -52,7 +51,7 @@ MainWindow::MainWindow(SparkleAutoUpdater* updater, QWidget* parent)
 
     timer_ = new QTimer();
     connect(timer_, &QTimer::timeout, this, &MainWindow::timer_expired);
-    timer_->start(60000);
+    timer_->start(5*1000);
 
     tray_.setIcon(QIcon(":/icons/InkjetPlumber.icns"));
     tray_.show();
@@ -66,20 +65,25 @@ MainWindow::MainWindow(SparkleAutoUpdater* updater, QWidget* parent)
     // Create menu items and actions
     menuBar()->setNativeMenuBar(true);
     app_menu_ = new QMenu("Inkjet Plumber App Menu", this);
+
     QAction* action_about = app_menu_->addAction("About Inkjet Plumber...");
     action_about->setShortcut(Qt::CTRL+Qt::Key_A);
     action_about->setObjectName("action_about");
     action_about->setMenuRole(QAction::AboutRole);
+
+    QAction* action_update = app_menu_->addAction("Check for Update...");
+    action_update->setObjectName("action_update");
+    action_update->setMenuRole(QAction::ApplicationSpecificRole);
+
     QAction* action_prefs = app_menu_->addAction("Preferences...");
     action_prefs->setShortcut(Qt::CTRL+Qt::Key_Comma);
     action_prefs->setObjectName("action_prefs");
     action_prefs->setMenuRole(QAction::PreferencesRole);
-    QAction* action_update = app_menu_->addAction("Check for Update...");
-    action_update->setObjectName("action_update");
-    action_update->setMenuRole(QAction::ApplicationSpecificRole);
+
     QAction* action_exit = app_menu_->addAction("Exit");
     action_exit->setObjectName("action_exit");
     action_exit->setMenuRole(QAction::QuitRole);
+
     menuBar()->addMenu(app_menu_);
 
     connect(action_about, &QAction::triggered, this, &MainWindow::show_about_dialog);
@@ -158,6 +162,26 @@ MaintenanceJob* MainWindow::find_maint_job(const QString& printer_name) const
         job = maint_job_map_.value(printer_name);
 
     return job;
+}
+
+QString MainWindow::get_color_mode_string(QPrinter::ColorMode color_mode) const
+{
+    QString color_mode_str;
+
+    switch (color_mode)
+    {
+    case QPrinter::GrayScale:
+        color_mode_str = "GrayScale";
+        break;
+    case QPrinter::Color:
+        color_mode_str = "Color";
+        break;
+    default:
+        color_mode_str = "Unknown";
+        break;
+    }
+
+    return color_mode_str;
 }
 
 QString MainWindow::get_duplex_string(QPrinter::DuplexMode mode) const
@@ -280,14 +304,14 @@ void MainWindow::log_message(const QString& msg) const
 
 void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
 {
+    QFont tahoma("Tahoma", 10);
+    QFont courier("Courier New", 10);
     QPainter painter;
     painter.begin(printer);
 
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::black);
-//  Draw page rect to show printable page (excluding margins)
-//  painter.drawRect(painter_rect);
-    painter.setFont(QFont("Tahoma", 10));
+    painter.setFont(tahoma);
     painter.drawText(0, 0, "Inkjet Plumber maintenance job sent to " + printer->printerName() + ": " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss."));
     painter.setPen(QPen(Qt::black));
 
@@ -303,6 +327,42 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     if (job->green)         print_swatch(painter, &offset, 50, Qt::green);
     if (job->blue)          print_swatch(painter, &offset, 50, Qt::blue);
 
+    QPrinterInfo printer_info(*printer);
+    QPageSize page_size(printer->pageLayout().pageSize());
+
+    QString text;
+
+    text += "<strong>Printer Information</strong><br/><br/>";
+    text += "name = " + printer_info.printerName() + "<br/>";
+    text += "make and model = " + printer_info.makeAndModel() + "<br/>";
+    text += "description = " + printer_info.description() + "<br/>";
+    text += "location = " + printer_info.location() + "<br/>";
+    text += "resolution = " + QString::number(printer->resolution()) + "<br/>";
+    text += "state = " + get_state_string(printer->printerState()) + "<br/>";
+    text += "duplex = " + get_duplex_string(printer->duplex()) + "<br/>";
+    text += "color count = " + QString::number(printer->colorCount()) + "<br/>";
+    text += "color mode = " + get_color_mode_string(printer->colorMode()) + "<br/><br/>";
+
+    page_size.name();
+    text += "<strong>Page/Paper Information</strong><br/><br/>";
+    text += "page size = " + page_size.name() + "<br/>";
+    text += "page width = " + QString::number(printer->pageRect().width()) + "<br/>";
+    text += "page height = " + QString::number(printer->pageRect().height()) + "<br/>";
+    text += "paper size = " + printer->paperName() + "<br/>";
+    text += "paper width = " + QString::number(printer->paperRect().width()) + "<br/>";
+    text += "paper height = " + QString::number(printer->paperRect().height()) + "<br/>";
+
+    painter.save();
+    painter.translate(0, 500);
+
+    QTextDocument doc;
+    doc.setDefaultFont(tahoma);
+    doc.documentLayout()->setPaintDevice(painter.device());
+    doc.setPageSize(printer->pageRect().size());
+    doc.setHtml(text);
+    doc.drawContents(&painter);
+
+    painter.restore();
     painter.end();
 
     log_message("Maintenance job sent to printer " + printer->printerName() + ".");
@@ -379,8 +439,7 @@ void MainWindow::read_printer_settings(const QString& printer_name)
 
 void MainWindow::run_maint_job(MaintenanceJob* job)
 {
-    if (!job) return;
-    if (!job->enabled) return;
+    if (!job || !job->enabled) return;
 
     bool colors = job->cyan|job->yellow|job->magenta|job->black|job->gray|job->light_gray|job->red|job->green|job->blue;
 
@@ -388,31 +447,36 @@ void MainWindow::run_maint_job(MaintenanceJob* job)
 
     job->last_maint = QDateTime::currentDateTime();
 
-    QPrinter printer(QPrinter::HighResolution);
     QPageLayout page_layout = QPageLayout(QPageSize(QPageSize::Letter), QPageLayout::Portrait, QMarginsF(.5, .5, .5, .5), QPageLayout::Inch);
 
-    printer.setPrinterName(job->printer_name);
-    printer.setPageLayout(page_layout);
+    QPrinter printer(QPrinter::HighResolution);
+
+    printer.setColorMode(QPrinter::Color);
     printer.setCopyCount(1);
+    printer.setCreator("Inkjet Plumber");
+    printer.setDocName("Inkjet Plumber Maintenance Job");
     printer.setDoubleSidedPrinting(false);
     printer.setDuplex(QPrinter::DuplexNone);
-    printer.setColorMode(QPrinter::Color);
+    printer.setFullPage(true);
+    printer.setPageLayout(page_layout);
+    printer.setPageSize(QPrinter::Letter);
     printer.setPaperSize(QPrinter::Letter);
     printer.setPaperSource(QPrinter::Auto);
-    printer.setCreator("Inkjet Plumber");
-    printer.setPageLayout(page_layout);
-    printer.setDocName("Inkjet Plumber Maintenance Job");
-
-    QPrintDialog print_dlg(&printer);
-    print_dlg.accept();
+    printer.setPrinterName(job->printer_name);
+    printer.setResolution(300);
 
     paint_page(job, &printer);
 
-    QSettings s;
-    s.beginGroup(job->printer_name);
-    s.setValue("last_maint", job->last_maint);
-    s.endGroup();
-    s.sync();
+    QDateTime earliest_date(QDate(2016,7,1));
+
+    if (job->last_maint.isValid() && job->last_maint > earliest_date)
+    {
+        QSettings s;
+        s.beginGroup(job->printer_name);
+        s.setValue("last_maint", job->last_maint);
+        s.endGroup();
+        s.sync();
+    }
 
     return;
 }
@@ -428,7 +492,7 @@ void MainWindow::setup_sparkle()
     {
         updater_->setUpdateCheckInterval(interval);
         QDateTime dt = updater_->lastUpdateCheckDate();
-        qDebug("Last update check performed at '%s'.", qUtf8Printable(dt.toString("yyyy-MM-dd hh:mm:ss")));
+        log_message("Last update check performed at " + dt.toString("yyyy-MM-dd hh:mm:ss") + ".");
     }
 
     return;
@@ -444,9 +508,6 @@ void MainWindow::check_for_update()
 
 void MainWindow::show_printer_info(const QString& printer_name) const
 {
-    QString msg;
-    QPrinterInfo pi = QPrinterInfo::printerInfo(printer_name);
-
     MaintenanceJob *job = find_maint_job(printer_name);
     if (!job) return;
 
@@ -484,7 +545,8 @@ void MainWindow::write_printer_settings(MaintenanceJob *job)
         s.setValue("red", job->red);
         s.setValue("green", job->green);
         s.setValue("blue", job->blue);
-        s.setValue("last_maint", job->last_maint);
+        if (job->last_maint.isValid())
+            s.setValue("last_maint", job->last_maint);
         s.endGroup();
     }
 

@@ -20,6 +20,6 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define INKJETPLUMBER_VERSION   "0.9.0.0"
+#define INKJETPLUMBER_VERSION   "0.9.0.4"
 
 #endif // VERSION_H
