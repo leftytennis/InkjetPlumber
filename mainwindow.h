@@ -87,7 +87,7 @@ private:
     QString get_state_string(QPrinter::PrinterState state) const;
     QString get_unit_string(QPageSize::Unit unit) const;
     void log_message(const QString& msg) const;
-    void print_swatch(QPainter& painter, int* x, int y, QColor color) const;
+    void paint_swatch(QPrinter* printer, QPainter& painter, int* x, int y, QColor color) const;
     void read_printer_settings(const QString& printer_name);
     void run_maint_job(MaintenanceJob* job);
     void setup_sparkle();
