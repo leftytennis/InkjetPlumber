@@ -3,4 +3,7 @@
         <file>InkjetPlumber.icns</file>
         <file>icon.png</file>
     </qresource>
+    <qresource prefix="/files">
+        <file>LaunchAgent.plist</file>
+    </qresource>
 </RCC>

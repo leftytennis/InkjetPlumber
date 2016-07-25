@@ -36,17 +36,19 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     connect(ui->checkBox_run_maintenance, &QCheckBox::stateChanged, this, &PreferencesDialog::printer_state_changed);
     connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &PreferencesDialog::dialog_button_clicked);
 
+    QSettings s;
+    s.beginGroup("general");
+    bool auto_launch = s.value("autolaunch", true).toBool();
+    bool auto_update = s.value("autoupdate", true).toBool();
+    bool development_updates = s.value("development", false).toBool();
+    s.endGroup();
+
+    ui->checkbox_auto_launch->setChecked(auto_launch);
+    ui->checkbox_auto_update->setChecked(auto_update);
+    ui->checkbox_development->setChecked(development_updates);
+
     ui->listWidget_Colors->setViewMode(QListView::IconMode);
     ui->listWidget_Colors->setIconSize(QSize(32, 32));
-
-//    QStringList printer_names = QPrinterInfo::availablePrinterNames();
-//
-//    for (int i = 0; i < printer_names.count(); i++)
-//    {
-//        QString printer_name = printer_names[i];
-//        ui->listWidget_Settings->addItem(printer_name);
-//        read_printer_settings(printer_name);
-//    }
 
     ui->listWidget_Colors->setFont(QFont("Courier New", 10));
 
@@ -60,6 +62,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     ui->listWidget_Colors->addItem(create_color_item(Qt::red));
     ui->listWidget_Colors->addItem(create_color_item(Qt::green));
     ui->listWidget_Colors->addItem(create_color_item(Qt::blue));
+
+    ui->tabWidget->setCurrentIndex(0);
 
     // select first printer in list
     ui->listWidget_Settings->setCurrentRow(0);
@@ -93,30 +97,27 @@ QListWidgetItem* PreferencesDialog::create_color_item(const QColor color) const
 
 void PreferencesDialog::dialog_button_clicked(QAbstractButton* button)
 {
-    QString button_text;
-
     if (button)
     {
         QDialogButtonBox::StandardButton standard_button = ui->buttonBox->standardButton(button);
         switch (standard_button)
         {
-        case QDialogButtonBox::Ok:
-            // update preferences and write settings
-            accept();
-            //hide();
-            break;
-        case QDialogButtonBox::Cancel:
-            reject();
-            //hide();
-            break;
-        case QDialogButtonBox::Apply:
-            // update preferences only
-            break;
-        case QDialogButtonBox::RestoreDefaults:
-            // restore defaults (from job or settings?)
-            break;
-        default:
-            qDebug("Unknown standard button type: %d", standard_button);
+            case QDialogButtonBox::Ok:
+                // update preferences and write settings
+                accept();
+                break;
+            case QDialogButtonBox::Cancel:
+                reject();
+                break;
+            case QDialogButtonBox::Apply:
+                // update preferences only
+                break;
+            case QDialogButtonBox::RestoreDefaults:
+                // restore defaults (from job or settings?)
+                break;
+            default:
+                qDebug("Unknown standard button type: %d", standard_button);
+                break;
         }
     }
 
@@ -159,7 +160,21 @@ void PreferencesDialog::done(int result)
         }
     }
 
-    if (!is_error) QDialog::done(result);
+    if (is_error) return;
+
+    // all field validation passed, save settings
+
+    QSettings s;
+    s.beginGroup("general");
+    s.setValue("autolaunch", ui->checkbox_auto_launch->isEnabled());
+    s.setValue("autoupdate", ui->checkbox_auto_update->isEnabled());
+    s.setValue("development", ui->checkbox_development->isEnabled());
+    s.sync();
+
+    // let everyone know the settings have been updated
+    emit settings_updated();
+
+    QDialog::done(result);
 
     return;
 }

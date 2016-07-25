@@ -48,6 +48,7 @@ public:
 
 signals:
 
+    void settings_updated();
     void update_maint_job(MaintenanceJob* job);
 
 private slots:
