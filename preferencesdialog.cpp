@@ -166,9 +166,10 @@ void PreferencesDialog::done(int result)
 
     QSettings s;
     s.beginGroup("general");
-    s.setValue("autolaunch", ui->checkbox_auto_launch->isEnabled());
-    s.setValue("autoupdate", ui->checkbox_auto_update->isEnabled());
-    s.setValue("development", ui->checkbox_development->isEnabled());
+    s.setValue("autolaunch", ui->checkbox_auto_launch->isChecked());
+    s.setValue("autoupdate", ui->checkbox_auto_update->isChecked());
+    s.setValue("development", ui->checkbox_development->isChecked());
+    s.endGroup();
     s.sync();
 
     // let everyone know the settings have been updated
