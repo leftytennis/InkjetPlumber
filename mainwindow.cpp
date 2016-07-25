@@ -213,10 +213,19 @@ MainWindow::~MainWindow()
     return;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent* event)
 {
+    qDebug() << "enter closeEvent";
+    qDebug() << "spontaneous = " << event->spontaneous();
+    qDebug() << "MainWindow is visible = " << isVisible();
+    qDebug() << "Tray is visible = " << tray_.isVisible();
+
 #if defined(Q_OS_OSX)
-    if (!event->spontaneous() || !isVisible()) return;
+    if (!event->spontaneous() || !isVisible())
+    {
+        qDebug() << "early return from closeEvent";
+        return;
+    }
 #endif
 
     if (tray_.isVisible())
@@ -241,7 +250,11 @@ void MainWindow::closeEvent(QCloseEvent *event)
         }
         hide();
         event->ignore();
+        qDebug() << "hide and ignore closeEvent";
+        return;
     }
+
+    qDebug() << "leave closeEvent";
 
     return;
 }
@@ -757,6 +770,7 @@ void MainWindow::show_about_dialog()
 {
     if (about_dlg_)
     {
+        show_main_window();
         about_dlg_->show();
     }
 
@@ -777,6 +791,7 @@ void MainWindow::show_preferences_dialog()
 
     if (preferences_dlg_)
     {
+        show_main_window();
         preferences_dlg_->set_maintenance_map(maint_job_map_);
         int result = preferences_dlg_->exec();
         Q_UNUSED(result);
