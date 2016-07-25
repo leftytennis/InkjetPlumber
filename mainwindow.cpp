@@ -656,6 +656,7 @@ void MainWindow::setup_sparkle()
     {
         updater_->setFeedURL(url);
         updater_->setUpdateCheckInterval(interval);
+        updater_->setAutomaticallyDownloadsUpdates(true);
         updater_->setAutomaticallyChecksForUpdates(auto_update_);
     }
 
