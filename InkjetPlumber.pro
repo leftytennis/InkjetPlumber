@@ -34,13 +34,6 @@ RESOURCES += \
 
 ICON = InkjetPlumber.icns
 
-INCLUDEPATH += $$PWD/Sparkle/build/Release/Sparkle.framework/Headers/
-
-LIBS += -F$${PWD}/Sparkle/build/Release/
-LIBS += -framework Sparkle -framework AppKit
-
-QMAKE_INFO_PLIST = InkjetPlumber.plist
-
 CONFIG(debug, debug|release) {
     DESTDIR = build/debug
     DEFINES += INKJETPLUMBER_DEBUG
@@ -65,12 +58,14 @@ mac {
     QMAKE_LFLAGS  = -Wl,-rpath,@executable_path/../Frameworks
     QMAKE_POST_LINK += ditto -v \"$${PWD}/Sparkle/build/Release/Sparkle.framework/\" \"$${BUNDLE_DIR}/Contents/Frameworks/Sparkle.framework/\" 2>&1;
     QMAKE_POST_LINK += /Users/jefft/bin/codesign_app_bundle \"$${BUNDLE_DIR}\" 2>&1
-}
-
-plist.target = Info.plist
-plist.depends = InkjetPlumber.plist "$${DESTDIR}/$${TARGET}.app/Contents/Info.plist"
-plist.commands = $(DEL_FILE) \"$${DESTDIR}/$${TARGET}.app/Contents/Info.plist\" $$escape_expand(\n\t) \
+    INCLUDEPATH += $$PWD/Sparkle/build/Release/Sparkle.framework/Headers/
+    LIBS += -F$${PWD}/Sparkle/build/Release/
+    LIBS += -framework Sparkle -framework AppKit
+    QMAKE_INFO_PLIST = InkjetPlumber.plist
+    plist.target = Info.plist
+    plist.depends = InkjetPlumber.plist "$${DESTDIR}/$${TARGET}.app/Contents/Info.plist"
+    plist.commands = $(DEL_FILE) \"$${DESTDIR}/$${TARGET}.app/Contents/Info.plist\" $$escape_expand(\n\t) \
     $(COPY_FILE) InkjetPlumber.plist \"$${DESTDIR}/$${TARGET}.app/Contents/Info.plist\"
-
-QMAKE_EXTRA_TARGETS = plist
-PRE_TARGETDEPS += $$plist.target
+    QMAKE_EXTRA_TARGETS = plist
+    PRE_TARGETDEPS += $$plist.target
+}

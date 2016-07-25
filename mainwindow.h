@@ -25,9 +25,12 @@
 #include <QMainWindow>
 #include <QDateTime>
 #include <QDebug>
+#include <QDir>
+#include <QKeySequence>
 #include <QMap>
 #include <QMapIterator>
 #include <QMenu>
+#include <QMessageBox>
 #include <QPageLayout>
 #include <QPageSetupDialog>
 #include <QPainter>
@@ -49,7 +52,11 @@
 
 #include "aboutdialog.h"
 #include "preferencesdialog.h"
+#include "version.h"
+
+#if defined(Q_OS_OSX)
 #include "sparkleautoupdater.h"
+#endif
 
 namespace Ui {
 class MainWindow;
@@ -60,7 +67,11 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
+#if defined(Q_OS_OSX)
     explicit MainWindow(SparkleAutoUpdater* updater = 0, QWidget* parent = 0);
+#else
+    explicit MainWindow(QWidget* parent = 0);
+#endif
     ~MainWindow();
 
     void closeEvent(QCloseEvent* event);
@@ -71,10 +82,14 @@ signals:
 
 private slots:
 
+    void about_to_show_tray_menu();
+#if defined(Q_OS_OSX)
     void check_for_update();
+#endif
     void paint_page(MaintenanceJob* job, QPrinter* printer);
     void maint_job_updated(MaintenanceJob* job);
     void show_about_dialog();
+    void show_main_window();
     void show_preferences_dialog();
     void timer_expired();
 
@@ -88,23 +103,32 @@ private:
     QString get_unit_string(QPageSize::Unit unit) const;
     void log_message(const QString& msg) const;
     void paint_swatch(QPrinter* printer, QPainter& painter, int* x, int y, QColor color) const;
+    void read_settings();
     void read_printer_settings(const QString& printer_name);
     void run_maint_job(MaintenanceJob* job);
+#if defined(Q_OS_OSX)
     void setup_sparkle();
+#endif
     void show_printer_info(const QString& printer_name) const;
     void write_printer_settings(const QString& printer_name);
     void write_printer_settings(MaintenanceJob* job);
 
     AboutDialog* about_dlg_;
     QMenu* app_menu_;
+    bool auto_launch_;
+    bool auto_update_;
+    bool development_updates_;
     MaintenanceJobMap maint_job_map_;
     QStringList messages_;
-    QStringListModel* model_;
     PreferencesDialog* preferences_dlg_;
-    QSystemTrayIcon tray_;
     QTimer* timer_;
+    QSystemTrayIcon tray_;
+    QMenu* tray_menu_;
+    bool tray_warning_;
     Ui::MainWindow* ui;
+#if defined(Q_OS_OSX)
     SparkleAutoUpdater* updater_;
+#endif
 };
 
 #endif // MAINWINDOW_H

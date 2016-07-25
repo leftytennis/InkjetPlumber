@@ -22,10 +22,11 @@
 #include "version.h"
 #include "mainwindow.h"
 
+#if defined(Q_OS_OSX)
 #include "cocoainitializer.h"
 #include "autoupdater.h"
 #include "sparkleautoupdater.h"
-
+#endif
 
 int main(int argc, char* argv[])
 {
@@ -35,12 +36,15 @@ int main(int argc, char* argv[])
     a.setOrganizationDomain("threeputt.org");
     a.setOrganizationName("Jeff Thompson");
 
+#if defined(Q_OS_OSX)
     SparkleAutoUpdater* updater = nullptr;
-
     CocoaInitializer initializer;
     updater = new SparkleAutoUpdater();
-
     MainWindow w(updater);
+#else
+    MainWindow w;
+#endif
+
     w.show();
 
     return a.exec();

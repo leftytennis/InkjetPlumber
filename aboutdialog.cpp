@@ -33,7 +33,7 @@ AboutDialog::AboutDialog(QWidget *parent)
     setWindowFlags(flags);
 
     QString version = "Version " + QString(INKJETPLUMBER_VERSION);
-    ui->labelVersion->setText(version);
+    ui->label_version->setText(version);
 
     return;
 }

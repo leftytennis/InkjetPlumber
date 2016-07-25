@@ -20,17 +20,30 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#if defined(Q_OS_OSX)
 MainWindow::MainWindow(SparkleAutoUpdater* updater, QWidget* parent)
+#else
+MainWindow::MainWindow(QWidget* parent)
+#endif
     : QMainWindow(parent)
     , about_dlg_(nullptr)
     , app_menu_(nullptr)
-    , model_(nullptr)
+    , auto_launch_(true)
+    , auto_update_(true)
+    , development_updates_(false)
     , preferences_dlg_(nullptr)
     , timer_(nullptr)
+    , tray_menu_(nullptr)
+    , tray_warning_(true)
     , ui(new Ui::MainWindow)
+#if defined(Q_OS_OSX)
     , updater_(updater)
+#endif
 {
     ui->setupUi(this);
+
+    // Read settings/preferences
+    read_settings();
 
     setUnifiedTitleAndToolBarOnMac(true);
     setWindowIcon(QIcon(":/icons/InkjetPlumber.icns"));
@@ -53,27 +66,28 @@ MainWindow::MainWindow(SparkleAutoUpdater* updater, QWidget* parent)
     connect(timer_, &QTimer::timeout, this, &MainWindow::timer_expired);
     timer_->start(5*1000);
 
-    tray_.setIcon(QIcon(":/icons/InkjetPlumber.icns"));
-    tray_.show();
-
     about_dlg_ = new AboutDialog(this);
     preferences_dlg_ = new PreferencesDialog(this);
 
     connect(preferences_dlg_, &PreferencesDialog::update_maint_job, this, &MainWindow::maint_job_updated);
+    connect(preferences_dlg_, &PreferencesDialog::settings_updated, this, &MainWindow::read_settings);
     connect(this, &MainWindow::update_maint_job, this, &MainWindow::maint_job_updated);
 
     // Create menu items and actions
     menuBar()->setNativeMenuBar(true);
-    app_menu_ = new QMenu("Inkjet Plumber App Menu", this);
+    app_menu_ = new QMenu(this);
 
     QAction* action_about = app_menu_->addAction("About Inkjet Plumber...");
-    action_about->setShortcut(Qt::CTRL+Qt::Key_A);
     action_about->setObjectName("action_about");
     action_about->setMenuRole(QAction::AboutRole);
+    action_about->setShortcut(Qt::CTRL+Qt::Key_A);
 
+#if defined(Q_OS_OSX)
     QAction* action_update = app_menu_->addAction("Check for Update...");
     action_update->setObjectName("action_update");
+    action_update->setShortcut(QKeySequence("Ctrl+U"));
     action_update->setMenuRole(QAction::ApplicationSpecificRole);
+#endif
 
     QAction* action_prefs = app_menu_->addAction("Preferences...");
     action_prefs->setShortcut(Qt::CTRL+Qt::Key_Comma);
@@ -88,12 +102,63 @@ MainWindow::MainWindow(SparkleAutoUpdater* updater, QWidget* parent)
 
     connect(action_about, &QAction::triggered, this, &MainWindow::show_about_dialog);
     connect(action_prefs, &QAction::triggered, this, &MainWindow::show_preferences_dialog);
-    connect(action_update, &QAction::triggered, this, &MainWindow::check_for_update);
     connect(action_exit, &QAction::triggered, this, &MainWindow::close);
+#if defined(Q_OS_OSX)
+    connect(action_update, &QAction::triggered, this, &MainWindow::check_for_update);
+#endif
 
+    // setup system tray and tray menu
+
+    tray_menu_ = new QMenu(this);
+    tray_menu_->setShortcutEnabled(true);
+
+    QAction* tray_action_about = new QAction("About Inkjet Plumber...");
+    tray_action_about->setShortcut(Qt::CTRL+Qt::Key_A);
+
+    QAction* tray_action_prefs = new QAction("Preferences...");
+    tray_action_prefs->setShortcut(Qt::CTRL+Qt::Key_Comma);
+
+#if defined(Q_OS_OSX)
+    QAction* tray_action_update = new QAction("Check for Update...");
+    tray_action_update->setShortcut(Qt::CTRL+Qt::Key_U);
+#endif
+
+    QAction* tray_action_show = new QAction("Show Inkjet Plumber");
+    tray_action_show->setObjectName("tray_action_show");
+
+    QAction* tray_action_quit = new QAction("Quit");
+//    tray_action_quit->setShortcut(Qt::CTRL+Qt::Key_Q);
+
+    tray_menu_->addAction(tray_action_about);
+    tray_menu_->addAction(tray_action_prefs);
+#if defined(Q_OS_OSX)
+    tray_menu_->addAction(tray_action_update);
+#endif
+    tray_menu_->addSeparator();
+    tray_menu_->addAction(tray_action_show);
+    tray_menu_->addSeparator();
+    tray_menu_->addAction(tray_action_quit);
+
+    connect(tray_action_about, &QAction::triggered, this, &MainWindow::show_about_dialog);
+    connect(tray_action_prefs, &QAction::triggered, this, &MainWindow::show_preferences_dialog);
+    connect(tray_action_update, &QAction::triggered, this, &MainWindow::check_for_update);
+    connect(tray_action_show, &QAction::triggered, this, &MainWindow::show_main_window);
+    connect(tray_action_quit, &QAction::triggered, this, &MainWindow::close);
+    connect(tray_menu_, &QMenu::aboutToShow, this, &MainWindow::about_to_show_tray_menu);
+
+    tray_.setIcon(QIcon(":/icons/InkjetPlumber.icns"));
+    tray_.setContextMenu(tray_menu_);
+    tray_.show();
+
+#if defined(Q_OS_OSX)
     // setup sparkle for auto updates
-    setup_sparkle();
+    if (auto_update_)
+        setup_sparkle();
+#endif
 
+#if defined(Q_OS_WIN)
+    // Windows auto startup stuff goes here
+#endif
     return;
 }
 
@@ -111,12 +176,6 @@ MainWindow::~MainWindow()
         app_menu_ = nullptr;
     }
 
-    if (model_)
-    {
-        delete model_;
-        model_ = nullptr;
-    }
-
     if (preferences_dlg_)
     {
         delete preferences_dlg_;
@@ -128,6 +187,12 @@ MainWindow::~MainWindow()
         timer_->stop();
         delete timer_;
         timer_ = nullptr;
+    }
+
+    if (tray_menu_)
+    {
+        delete tray_menu_;
+        tray_menu_ = nullptr;
     }
 
     if (ui)
@@ -148,9 +213,56 @@ MainWindow::~MainWindow()
     return;
 }
 
-void MainWindow::closeEvent(QCloseEvent* event)
+void MainWindow::closeEvent(QCloseEvent *event)
 {
-    Q_UNUSED(event);
+#if defined(Q_OS_OSX)
+    if (!event->spontaneous() || !isVisible()) return;
+#endif
+
+    if (tray_.isVisible())
+    {
+        if (tray_warning_ && !qApp->closingDown())
+        {
+            tray_warning_ = false;
+            QSettings s;
+            s.beginGroup("general");
+            s.setValue("traywarn", tray_warning_);
+            s.sync();
+            s.endGroup();
+            QFont normal;
+            normal.setWeight(QFont::Normal);
+            QMessageBox mb;
+            mb.setFont(normal);
+            mb.setIcon(QMessageBox::Information);
+            mb.setText("Inkjet Plumber");
+            mb.setInformativeText("Inkjet Plumber will keep running in the menubar. To terminate the program, choose <strong>Quit</strong> from the context menu of the menubar.");
+            mb.setStandardButtons(QMessageBox::Ok);
+            mb.exec();
+        }
+        hide();
+        event->ignore();
+    }
+
+    return;
+}
+
+void MainWindow::about_to_show_tray_menu()
+{
+    QList<QAction*> actions = tray_menu_->actions();
+
+    for (int i = 0; i < actions.count(); i++)
+    {
+        QAction* action = actions[i];
+        if (action->objectName() == "tray_action_show")
+        {
+            if (isActiveWindow())
+                action->setEnabled(false);
+            else
+                action->setEnabled(true);
+            return;
+        }
+    }
+
     return;
 }
 
@@ -309,10 +421,12 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     QPainter painter;
     painter.begin(printer);
 
+    QString msg = "Inkjet Plumber " + QString(INKJETPLUMBER_VERSION) + " maintenance job sent to " + printer->printerName() + ": " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.");
+
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::black);
     painter.setFont(tahoma);
-    painter.drawText(0, 0, "Inkjet Plumber maintenance job sent to " + printer->printerName() + ": " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss."));
+    painter.drawText(0, 0, msg);
     painter.setPen(QPen(Qt::black));
 
     int resolution = printer->resolution();
@@ -366,7 +480,11 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
     painter.restore();
     painter.end();
 
-    log_message("Maintenance job sent to printer " + printer->printerName() + ".");
+    QDateTime next_maint = job->last_maint.addSecs(job->hours*3600);
+
+    log_message("Maintenance job sent to printer " + printer->printerName() + ", next job = " + next_maint.toString("yyyy-MM-dd hh:mm:ss") + ".");
+
+    tray_.showMessage("Inkjet Plumber", "Maintenance job sent to printer " + printer->printerName());
 
     return;
 }
@@ -405,6 +523,40 @@ void MainWindow::paint_swatch(QPrinter* printer, QPainter& painter, int *x, int 
     }
 
     *x += width + padding;
+
+    return;
+}
+
+void MainWindow::read_settings()
+{
+    QSettings s;
+    s.beginGroup("general");
+    auto_launch_ = s.value("autolaunch", true).toBool();
+    auto_update_ = s.value("autoupdate", true).toBool();
+    development_updates_ = s.value("development", false).toBool();
+    tray_warning_ = s.value("traywarn", true).toBool();
+    s.endGroup();
+
+#if defined(Q_OS_OSX)
+
+    QFile launch_agent(QDir::homePath() + "/Library/LaunchAgents/org.threeputt.Inkjet Plumber.plist");
+
+    if (auto_launch_)
+    {
+        if (launch_agent.exists()) launch_agent.remove();
+        QFile res_file(":/files/LaunchAgent.plist");
+        bool success = res_file.copy(launch_agent.fileName());
+        if (!success)
+            qDebug() << "Installation of launch agent failed!";
+    }
+    else
+    {
+        launch_agent.remove();
+    }
+
+    setup_sparkle();
+
+#endif
 
     return;
 }
@@ -482,27 +634,37 @@ void MainWindow::run_maint_job(MaintenanceJob* job)
     return;
 }
 
+#if defined(Q_OS_OSX)
+
 void MainWindow::setup_sparkle()
 {
     QUrl url;
     long interval;
-#if defined(INKJETPLUMBER_DEBUG)
-    interval = (1*3600); // one hour
-    url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=true";
-#else
-    interval = (24*3600); // 24 hours
-    url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=false";
-#endif
+
+    if (development_updates_)
+    {
+        interval = 1*3600;
+        url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=true";
+    }
+    else
+    {
+        interval = 24*3600;
+        url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=false";
+    }
+
     if (updater_)
     {
         updater_->setFeedURL(url);
         updater_->setUpdateCheckInterval(interval);
-        QDateTime dt = updater_->lastUpdateCheckDate();
-        log_message("Last update check performed at " + dt.toString("yyyy-MM-dd hh:mm:ss") + ".");
+        updater_->setAutomaticallyChecksForUpdates(auto_update_);
     }
 
     return;
 }
+
+#endif
+
+#if defined(Q_OS_OSX)
 
 void MainWindow::check_for_update()
 {
@@ -512,17 +674,30 @@ void MainWindow::check_for_update()
     return;
 }
 
+#endif
+
 void MainWindow::show_printer_info(const QString& printer_name) const
 {
     MaintenanceJob *job = find_maint_job(printer_name);
     if (!job) return;
 
-    QDateTime next_maint = job->last_maint.addSecs(job->hours*3600);
+    QDateTime next_stamp = job->last_maint.addSecs(job->hours*3600);
+
+    QString last_maint;
+    QString next_maint;
+    QDateTime epoch(QDate(2016,7,1));
+
+    if (job->last_maint.isValid() && job->last_maint > epoch)
+        last_maint = job->last_maint.toString("yyyy-MM-dd hh:mm:ss");
+    else
+        last_maint = "never";
 
     if (job->enabled)
-        log_message("Found printer: " + printer_name + ", maint job is enabled.");
+        next_maint = next_stamp.toString("yyyy-MM-dd hh:mm:ss");
     else
-        log_message("Found printer: " + printer_name + ", maint job is disabled.");
+        next_maint = "disabled";
+
+    log_message("Printer " + printer_name + ", last job = " + last_maint + ", next job = " + next_maint + ".");
 
     return;
 }
@@ -583,6 +758,15 @@ void MainWindow::show_about_dialog()
     {
         about_dlg_->show();
     }
+
+    return;
+}
+
+void MainWindow::show_main_window()
+{
+    setVisible(true);
+    raise();
+    showNormal();
 
     return;
 }
