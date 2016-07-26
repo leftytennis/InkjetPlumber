@@ -74,7 +74,7 @@ public:
 #endif
     ~MainWindow();
 
-    void closeEvent(QCloseEvent* event);
+    virtual void closeEvent(QCloseEvent* event);
 
 signals:
 

@@ -215,15 +215,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
-    qDebug() << "enter closeEvent";
-    qDebug() << "spontaneous = " << event->spontaneous();
-    qDebug() << "MainWindow is visible = " << isVisible();
-    qDebug() << "Tray is visible = " << tray_.isVisible();
 
 #if defined(Q_OS_OSX)
     if (!event->spontaneous() || !isVisible())
     {
-        qDebug() << "early return from closeEvent";
+        QMainWindow::closeEvent(event);
         return;
     }
 #endif
@@ -250,11 +246,10 @@ void MainWindow::closeEvent(QCloseEvent* event)
         }
         hide();
         event->ignore();
-        qDebug() << "hide and ignore closeEvent";
         return;
     }
 
-    qDebug() << "leave closeEvent";
+    QMainWindow::closeEvent(event);
 
     return;
 }

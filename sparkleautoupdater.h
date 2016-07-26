@@ -37,7 +37,6 @@ public:
         void        setUpdateCheckInterval(long seconds);
         long        updateCheckInterval();
         bool        updateInProgress();
-        bool        validateMenuItem(QMenuBar* item);
 
 private:
 
