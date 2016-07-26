@@ -34,7 +34,6 @@ public:
     virtual void        setUpdateCheckInterval(long seconds) = 0;
     virtual long        updateCheckInterval() = 0;
     virtual bool        updateInProgress() = 0;
-    virtual bool        validateMenuItem(QMenuBar* item) = 0;
 };
 
 #endif

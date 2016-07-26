@@ -213,10 +213,15 @@ MainWindow::~MainWindow()
     return;
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
+void MainWindow::closeEvent(QCloseEvent* event)
 {
+
 #if defined(Q_OS_OSX)
-    if (!event->spontaneous() || !isVisible()) return;
+    if (!event->spontaneous() || !isVisible())
+    {
+        QMainWindow::closeEvent(event);
+        return;
+    }
 #endif
 
     if (tray_.isVisible())
@@ -241,7 +246,10 @@ void MainWindow::closeEvent(QCloseEvent *event)
         }
         hide();
         event->ignore();
+        return;
     }
+
+    QMainWindow::closeEvent(event);
 
     return;
 }
@@ -656,6 +664,7 @@ void MainWindow::setup_sparkle()
     {
         updater_->setFeedURL(url);
         updater_->setUpdateCheckInterval(interval);
+        updater_->setAutomaticallyDownloadsUpdates(true);
         updater_->setAutomaticallyChecksForUpdates(auto_update_);
     }
 
@@ -756,6 +765,7 @@ void MainWindow::show_about_dialog()
 {
     if (about_dlg_)
     {
+        show_main_window();
         about_dlg_->show();
     }
 
@@ -776,6 +786,7 @@ void MainWindow::show_preferences_dialog()
 
     if (preferences_dlg_)
     {
+        show_main_window();
         preferences_dlg_->set_maintenance_map(maint_job_map_);
         int result = preferences_dlg_->exec();
         Q_UNUSED(result);

@@ -203,30 +203,3 @@ bool SparkleAutoUpdater::updateInProgress()
 
     return b;
 }
-
-bool SparkleAutoUpdater::validateMenuItem(QMenuBar* item)
-{
-    Q_UNUSED(item);
-    BOOL b = NO;
-    NSMenu* menuBar = [NSApp menu];
-    NSArray* menu_item_array = [menuBar itemArray];
-    for (NSMenuItem* menu_item in menu_item_array)
-    {
-        NSString* title = [menu_item title];
-        qDebug("Got menu item with title '%s'", [title UTF8String]);
-        if (menu_item.hasSubmenu)
-        {
-            NSMenu* submenu = [menu_item submenu];
-            NSString* submenu_title = [submenu title];
-            qDebug("Got menu item submenu with title '%s'", [submenu_title UTF8String]);
-            NSMenuItem* submenu_item = [submenu itemWithTitle:@"Check for Update..."];
-            if (submenu_item)
-            {
-                NSString* submenu_item_title = [submenu_item title];
-                qDebug("Got menu item submenu item with title '%s'", [submenu_item_title UTF8String]);
-                b = [d->updater validateMenuItem:submenu_item];
-            }
-        }
-    }
-    return b;
-}

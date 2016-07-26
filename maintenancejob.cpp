@@ -59,20 +59,21 @@ MaintenanceJob::MaintenanceJob(const QString& name, QObject* parent)
 }
 
 MaintenanceJob::MaintenanceJob(const MaintenanceJob& rhs)
+    : QObject(rhs.parent())
+    , printer_name(rhs.printer_name)
+    , enabled(rhs.enabled)
+    , hours(rhs.hours)
+    , cyan(rhs.cyan)
+    , yellow(rhs.yellow)
+    , magenta(rhs.magenta)
+    , black(rhs.black)
+    , gray(rhs.gray)
+    , light_gray(rhs.light_gray)
+    , red(rhs.red)
+    , green(rhs.green)
+    , blue(rhs.blue)
+    , last_maint(rhs.last_maint)
 {
-    printer_name = rhs.printer_name;
-    enabled = rhs.enabled;
-    hours = rhs.hours;
-    cyan = rhs.cyan;
-    yellow = rhs.yellow;
-    magenta = rhs.magenta;
-    black = rhs.black;
-    gray = rhs.gray;
-    light_gray = rhs.gray;
-    red = rhs.red;
-    green = rhs.green;
-    blue = rhs.blue;
-    last_maint = rhs.last_maint;
     return;
 }
 
