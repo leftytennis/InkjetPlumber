@@ -217,11 +217,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
 
 #if defined(Q_OS_OSX)
-    if (!event->spontaneous() || !isVisible())
-    {
-        QMainWindow::closeEvent(event);
-        return;
-    }
+    if (!event->spontaneous() || !isVisible()) return;
 #endif
 
     if (tray_.isVisible())
@@ -246,10 +242,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         }
         hide();
         event->ignore();
-        return;
     }
-
-    QMainWindow::closeEvent(event);
 
     return;
 }
