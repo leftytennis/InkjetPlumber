@@ -31,7 +31,9 @@ MainWindow::MainWindow(QWidget* parent)
     , auto_launch_(true)
     , auto_update_(true)
     , development_updates_(false)
+    , page_paper_info_(true)
     , preferences_dlg_(nullptr)
+    , printer_info_(true)
     , timer_(nullptr)
     , tray_menu_(nullptr)
     , tray_warning_(true)
@@ -217,11 +219,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 {
 
 #if defined(Q_OS_OSX)
-    if (!event->spontaneous() || !isVisible())
-    {
-        QMainWindow::closeEvent(event);
-        return;
-    }
+    if (!event->spontaneous() || !isVisible()) return;
 #endif
 
     if (tray_.isVisible())
@@ -246,10 +244,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
         }
         hide();
         event->ignore();
-        return;
     }
-
-    QMainWindow::closeEvent(event);
 
     return;
 }
@@ -455,37 +450,44 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
 
     QString text;
 
-    text += "<strong>Printer Information</strong><br/><br/>";
-    text += "name = " + printer_info.printerName() + "<br/>";
-    text += "make and model = " + printer_info.makeAndModel() + "<br/>";
-    text += "description = " + printer_info.description() + "<br/>";
-    text += "location = " + printer_info.location() + "<br/>";
-    text += "resolution = " + QString::number(printer->resolution()) + " dpi<br/>";
-    text += "state = " + get_state_string(printer->printerState()) + "<br/>";
-    text += "duplex = " + get_duplex_string(printer->duplex()) + "<br/>";
-    text += "color count = " + QString::number(printer->colorCount()) + "<br/>";
-    text += "color mode = " + get_color_mode_string(printer->colorMode()) + "<br/><br/>";
+    if (printer_info_)
+    {
+        text += "<strong>Printer Information</strong><br/><br/>";
+        text += "name = " + printer_info.printerName() + "<br/>";
+        text += "make and model = " + printer_info.makeAndModel() + "<br/>";
+        text += "description = " + printer_info.description() + "<br/>";
+        text += "location = " + printer_info.location() + "<br/>";
+        text += "resolution = " + QString::number(printer->resolution()) + " dpi<br/>";
+        text += "state = " + get_state_string(printer->printerState()) + "<br/>";
+        text += "duplex = " + get_duplex_string(printer->duplex()) + "<br/>";
+        text += "color count = " + QString::number(printer->colorCount()) + "<br/>";
+        text += "color mode = " + get_color_mode_string(printer->colorMode()) + "<br/><br/>";
+    }
 
-    page_size.name();
-    text += "<strong>Page/Paper Information</strong><br/><br/>";
-    text += "page size = " + page_size.name() + "<br/>";
-    text += "page width = " + QString::number(printer->pageRect().width()) + " dpi<br/>";
-    text += "page height = " + QString::number(printer->pageRect().height()) + " dpi<br/>";
-    text += "paper size = " + printer->paperName() + "<br/>";
-    text += "paper width = " + QString::number(printer->paperRect().width()) + " dpi<br/>";
-    text += "paper height = " + QString::number(printer->paperRect().height()) + " dpi<br/>";
+    if (page_paper_info_)
+    {
+        text += "<strong>Page/Paper Information</strong><br/><br/>";
+        text += "page size = " + page_size.name() + "<br/>";
+        text += "page width = " + QString::number(printer->pageRect().width()) + " dpi<br/>";
+        text += "page height = " + QString::number(printer->pageRect().height()) + " dpi<br/>";
+        text += "paper size = " + printer->paperName() + "<br/>";
+        text += "paper width = " + QString::number(printer->paperRect().width()) + " dpi<br/>";
+        text += "paper height = " + QString::number(printer->paperRect().height()) + " dpi<br/>";
+    }
 
-    painter.save();
-    painter.translate(0, resolution * 2);
+    if (page_paper_info_ || printer_info_)
+    {
+        painter.save();
+        painter.translate(0, resolution * 2);
+        QTextDocument doc;
+        doc.setDefaultFont(tahoma);
+        doc.documentLayout()->setPaintDevice(painter.device());
+        doc.setPageSize(printer->pageRect().size());
+        doc.setHtml(text);
+        doc.drawContents(&painter);
+        painter.restore();
+    }
 
-    QTextDocument doc;
-    doc.setDefaultFont(tahoma);
-    doc.documentLayout()->setPaintDevice(painter.device());
-    doc.setPageSize(printer->pageRect().size());
-    doc.setHtml(text);
-    doc.drawContents(&painter);
-
-    painter.restore();
     painter.end();
 
     QDateTime next_maint = job->last_maint.addSecs(job->hours*3600);
@@ -542,6 +544,8 @@ void MainWindow::read_settings()
     auto_launch_ = s.value("autolaunch", true).toBool();
     auto_update_ = s.value("autoupdate", true).toBool();
     development_updates_ = s.value("development", false).toBool();
+    page_paper_info_ = s.value("pagepaperinfo", true).toBool();
+    printer_info_ = s.value("printerinfo", true).toBool();
     tray_warning_ = s.value("traywarn", true).toBool();
     s.endGroup();
 
@@ -651,12 +655,12 @@ void MainWindow::setup_sparkle()
 
     if (development_updates_)
     {
-        interval = 1*3600;
+        interval = 24*3600;
         url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=true";
     }
     else
     {
-        interval = 24*3600;
+        interval = 7*24*3600;
         url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=false";
     }
 
@@ -664,8 +668,10 @@ void MainWindow::setup_sparkle()
     {
         updater_->setFeedURL(url);
         updater_->setUpdateCheckInterval(interval);
-        updater_->setAutomaticallyDownloadsUpdates(true);
+        updater_->setAutomaticallyDownloadsUpdates(false);
         updater_->setAutomaticallyChecksForUpdates(auto_update_);
+        if (auto_update_)
+            updater_->checkForUpdatesInBackground();
     }
 
     return;
@@ -743,7 +749,7 @@ void MainWindow::write_printer_settings(MaintenanceJob *job)
     return;
 }
 
-void MainWindow::maint_job_updated(MaintenanceJob *job)
+void MainWindow::maint_job_updated(MaintenanceJob* job, bool save)
 {
     if (!job) return;
 
@@ -753,7 +759,8 @@ void MainWindow::maint_job_updated(MaintenanceJob *job)
         show_printer_info(job->printer_name);
     }
 
-    write_printer_settings(job->printer_name);
+    if (save)
+        write_printer_settings(job->printer_name);
 
     if (preferences_dlg_)
         preferences_dlg_->set_maintenance_map(maint_job_map_);
@@ -809,7 +816,7 @@ void MainWindow::timer_expired()
         if (!maint_job_map_.contains(printer_name))
         {
             MaintenanceJob* job = new MaintenanceJob(printer_name);
-            emit update_maint_job(job);
+            emit update_maint_job(job, true);
         }
     }
 

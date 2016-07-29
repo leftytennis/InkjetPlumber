@@ -35,17 +35,22 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     connect(ui->listWidget_Settings, &QListWidget::currentRowChanged, this, &PreferencesDialog::setup_printer_settings);
     connect(ui->checkBox_run_maintenance, &QCheckBox::stateChanged, this, &PreferencesDialog::printer_state_changed);
     connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &PreferencesDialog::dialog_button_clicked);
+    connect(ui->checkBox_run_maintenance, &QCheckBox::toggled, this, &PreferencesDialog::maint_job_toggled);
 
     QSettings s;
     s.beginGroup("general");
     bool auto_launch = s.value("autolaunch", true).toBool();
     bool auto_update = s.value("autoupdate", true).toBool();
     bool development_updates = s.value("development", false).toBool();
+    bool page_paper_info = s.value("pagepaperinfo", true).toBool();
+    bool printer_info = s.value("printerinfo", true).toBool();
     s.endGroup();
 
     ui->checkbox_auto_launch->setChecked(auto_launch);
     ui->checkbox_auto_update->setChecked(auto_update);
     ui->checkbox_development->setChecked(development_updates);
+    ui->checkbox_page_paper_info->setChecked(page_paper_info);
+    ui->checkbox_printer_info->setChecked(printer_info);
 
     ui->listWidget_Colors->setViewMode(QListView::IconMode);
     ui->listWidget_Colors->setIconSize(QSize(32, 32));
@@ -156,7 +161,7 @@ void PreferencesDialog::done(int result)
             current_job_->red = ui->listWidget_Colors->item(6)->checkState() == Qt::Checked ? true : false;
             current_job_->green = ui->listWidget_Colors->item(7)->checkState() == Qt::Checked ? true : false;
             current_job_->blue = ui->listWidget_Colors->item(8)->checkState() == Qt::Checked ? true : false;
-            emit update_maint_job(current_job_);
+            emit update_maint_job(current_job_, true);
         }
     }
 
@@ -169,6 +174,8 @@ void PreferencesDialog::done(int result)
     s.setValue("autolaunch", ui->checkbox_auto_launch->isChecked());
     s.setValue("autoupdate", ui->checkbox_auto_update->isChecked());
     s.setValue("development", ui->checkbox_development->isChecked());
+    s.setValue("pagepaperinfo", ui->checkbox_page_paper_info->isChecked());
+    s.setValue("printerinfo", ui->checkbox_printer_info->isChecked());
     s.endGroup();
     s.sync();
 
@@ -177,6 +184,13 @@ void PreferencesDialog::done(int result)
 
     QDialog::done(result);
 
+    return;
+}
+
+void PreferencesDialog::maint_job_toggled(bool checked)
+{
+    ui->groupBox_printer_page_paper_info->setEnabled(checked);
+    ui->groupBox_Colors->setEnabled(checked);
     return;
 }
 
@@ -236,7 +250,8 @@ void PreferencesDialog::setup_printer_settings(int current_row)
             ui->checkBox_run_maintenance->setChecked(job->enabled);
             ui->lineEdit_hours->setEnabled(job->enabled);
             ui->lineEdit_hours->setText(QString::number(job->hours));
-            if (job->last_maint.isValid())
+            QDateTime epoch(QDate(2016,7,1));
+            if (job->last_maint.isValid() && job->last_maint > epoch)
                 ui->label_last_maint->setText(job->last_maint.toString("yyyy-MM-dd hh:mm:ss"));
             else
                 ui->label_last_maint->setText("never");
@@ -252,6 +267,9 @@ void PreferencesDialog::setup_printer_settings(int current_row)
                 ui->listWidget_Colors->item(7)->setCheckState(job->green ? Qt::Checked : Qt::Unchecked);
                 ui->listWidget_Colors->item(8)->setCheckState(job->blue ? Qt::Checked : Qt::Unchecked);
             }
+            // enable group boxes according to whether or not maint job is enabled
+            ui->groupBox_printer_page_paper_info->setEnabled(current_job_->enabled);
+            ui->groupBox_Colors->setEnabled(current_job_->enabled);
         }
         else
         {
