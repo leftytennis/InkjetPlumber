@@ -55,6 +55,10 @@ mac {
         cocoainitializer.mm \
         sparkleautoUpdater.mm
     BUNDLE_DIR = $$quote($$DESTDIR/$${TARGET}.app)
+    QMAKE_CFLAGS_RELEASE = $$QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO
+    QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS_RELEASE_WITH_DEBUGINFO
+    QMAKE_OBJECTIVE_CFLAGS_RELEASE = $$QMAKE_OBJECTIVE_CFLAGS_RELEASE_WITH_DEBUGINFO
+    QMAKE_LFLAGS_RELEASE = $$QMAKE_LFLAGS_RELEASE_WITH_DEBUGINFO
     QMAKE_LFLAGS  = -Wl,-rpath,@executable_path/../Frameworks
     QMAKE_POST_LINK += ditto -v \"$${PWD}/Sparkle/build/Release/Sparkle.framework/\" \"$${BUNDLE_DIR}/Contents/Frameworks/Sparkle.framework/\" 2>&1;
     QMAKE_POST_LINK += /Users/jefft/bin/codesign_app_bundle \"$${BUNDLE_DIR}\" 2>&1

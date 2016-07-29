@@ -2,5 +2,6 @@
 build
 Makefile*
 moc_*
+*.patch
 *.pro.user*
 *.dmg

@@ -49,12 +49,13 @@ public:
 signals:
 
     void settings_updated();
-    void update_maint_job(MaintenanceJob* job);
+    void update_maint_job(MaintenanceJob* job, bool save = true);
 
 private slots:
 
     void dialog_button_clicked(QAbstractButton* button);
     void done(int result);
+    void maint_job_toggled(bool checked);
     void printer_state_changed(int state);
     void setup_printer_settings(int current_row);
 

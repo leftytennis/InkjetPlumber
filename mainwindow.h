@@ -78,7 +78,7 @@ public:
 
 signals:
 
-    void update_maint_job(MaintenanceJob* job);
+    void update_maint_job(MaintenanceJob* job, bool save = true);
 
 private slots:
 
@@ -87,7 +87,7 @@ private slots:
     void check_for_update();
 #endif
     void paint_page(MaintenanceJob* job, QPrinter* printer);
-    void maint_job_updated(MaintenanceJob* job);
+    void maint_job_updated(MaintenanceJob* job, bool save = true);
     void show_about_dialog();
     void show_main_window();
     void show_preferences_dialog();
@@ -120,7 +120,9 @@ private:
     bool development_updates_;
     MaintenanceJobMap maint_job_map_;
     QStringList messages_;
+    bool page_paper_info_;
     PreferencesDialog* preferences_dlg_;
+    bool printer_info_;
     QTimer* timer_;
     QSystemTrayIcon tray_;
     QMenu* tray_menu_;
