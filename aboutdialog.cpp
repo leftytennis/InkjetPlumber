@@ -27,10 +27,7 @@ AboutDialog::AboutDialog(QWidget *parent)
 {
     ui->setupUi(this);
 
-    Qt::WindowFlags flags = 0;
-    flags |= Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint | Qt::WindowCloseButtonHint;
-    flags &= ~Qt::WindowMaximizeButtonHint;
-    setWindowFlags(flags);
+    connect(ui->pushbutton_ok, &QPushButton::clicked, this, &QDialog::close);
 
     QString version = "Version " + QString(INKJETPLUMBER_VERSION);
     ui->label_version->setText(version);

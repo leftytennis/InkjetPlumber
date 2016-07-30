@@ -1,9 +1,10 @@
 <RCC>
     <qresource prefix="/icons">
         <file>InkjetPlumber.icns</file>
-        <file>icon.png</file>
+        <file>resources/images/icon.png</file>
     </qresource>
     <qresource prefix="/files">
-        <file>LaunchAgent.plist</file>
+        <file>resources/files/LaunchAgent.plist</file>
+        <file>resources/files/PrintSelfTestPage.txt</file>
     </qresource>
 </RCC>

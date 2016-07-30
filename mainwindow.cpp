@@ -31,6 +31,7 @@ MainWindow::MainWindow(QWidget* parent)
     , auto_launch_(true)
     , auto_update_(true)
     , development_updates_(false)
+    , lpr_(nullptr)
     , page_paper_info_(true)
     , preferences_dlg_(nullptr)
     , printer_info_(true)
@@ -176,6 +177,12 @@ MainWindow::~MainWindow()
     {
         delete app_menu_;
         app_menu_ = nullptr;
+    }
+
+    if (lpr_)
+    {
+        delete lpr_;
+        lpr_ = nullptr;
     }
 
     if (preferences_dlg_)
@@ -492,7 +499,7 @@ void MainWindow::paint_page(MaintenanceJob* job, QPrinter* printer)
 
     QDateTime next_maint = job->last_maint.addSecs(job->hours*3600);
 
-    log_message("Maintenance job sent to printer " + printer->printerName() + ", next job = " + next_maint.toString("yyyy-MM-dd hh:mm:ss") + ".");
+    log_message("Maintenance job sent to " + printer->printerName() + ", next job = " + next_maint.toString("yyyy-MM-dd hh:mm:ss") + ".");
 
     tray_.showMessage("Inkjet Plumber", "Maintenance job sent to printer " + printer->printerName());
 
@@ -537,6 +544,70 @@ void MainWindow::paint_swatch(QPrinter* printer, QPainter& painter, int *x, int 
     return;
 }
 
+void MainWindow::print_self_test_page(MaintenanceJob* job)
+{
+    if (!job) return;
+
+//    if (!lpr_)
+//    {
+//        lpr_ = new QProcess();
+//        connect(lpr_, &QProcess::started, this, &MainWindow::lpr_started);
+//        connect(lpr_, &QProcess::errorOccurred, this, &MainWindow::lpr_error_occurred);
+//        connect(lpr_, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &MainWindow::lpr_finished);
+//        lpr_->setCurrentWriteChannel(0);
+//    }
+
+    QProcess lpr;
+
+    QString cmd = "#CUPS-COMMAND\nPrintSelfTestPage";
+
+    QFile res_file(":/files/resources/files/PrintSelfTestPage.txt");
+
+    QString temp_file_name;
+    QTemporaryFile* temp_file = QTemporaryFile::createNativeFile(res_file);
+
+    temp_file->setAutoRemove(false);
+    temp_file->open();
+    temp_file_name = temp_file->fileName();
+    temp_file->close();
+
+    QStringList args;
+
+    args << "-T" << "Inkjet Plumber Maintenance Job";
+    args << "-P" << job->printer_name;
+    args << temp_file_name;
+
+    lpr.start("/usr/bin/lpr", args);
+
+    bool success = lpr.waitForStarted();
+
+    if (success)
+    {
+        qDebug() << "lpr started successfully, print file: " << temp_file_name;
+    }
+    else
+    {
+        qDebug() << "lpr failed to start, exitCode =" << lpr.exitCode() << ", exitStatus =" << lpr.exitStatus();
+    }
+
+    if (success)
+    {
+        success = lpr.waitForFinished();
+        qDebug() << "lpr finished, exitCode =" << lpr.exitCode() << ", exitStatus =" << lpr.exitStatus();
+    }
+
+    success = temp_file->remove();
+
+    if (success)
+        qDebug() << "Temporary file removed successfully:" << temp_file_name;
+    else
+        qDebug() << "Error removing temporary file:" << temp_file_name;
+
+    delete temp_file;
+
+    return;
+}
+
 void MainWindow::read_settings()
 {
     QSettings s;
@@ -556,7 +627,7 @@ void MainWindow::read_settings()
     if (auto_launch_)
     {
         if (launch_agent.exists()) launch_agent.remove();
-        QFile res_file(":/files/LaunchAgent.plist");
+        QFile res_file(":/files/resources/files/LaunchAgent.plist");
         bool success = res_file.copy(launch_agent.fileName());
         if (!success)
             qDebug() << "Installation of launch agent failed!";
@@ -607,31 +678,40 @@ void MainWindow::run_maint_job(MaintenanceJob* job)
 {
     if (!job || !job->enabled) return;
 
-    bool colors = job->cyan|job->yellow|job->magenta|job->black|job->gray|job->light_gray|job->red|job->green|job->blue;
+//    bool colors = job->cyan|job->yellow|job->magenta|job->black|job->gray|job->light_gray|job->red|job->green|job->blue;
 
-    if (!colors) return;
+//    if (!colors) return;
+
+//    job->last_maint = QDateTime::currentDateTime();
+
+//    QPageLayout page_layout = QPageLayout(QPageSize(QPageSize::Letter), QPageLayout::Portrait, QMarginsF(.5, .5, .5, .5), QPageLayout::Inch);
+
+//    QPrinter printer(QPrinter::HighResolution);
+
+//    printer.setColorMode(QPrinter::Color);
+//    printer.setCopyCount(1);
+//    printer.setCreator("Inkjet Plumber");
+//    printer.setDocName("Inkjet Plumber Maintenance Job");
+//    printer.setDoubleSidedPrinting(false);
+//    printer.setDuplex(QPrinter::DuplexNone);
+//    printer.setFullPage(true);
+//    printer.setPageLayout(page_layout);
+//    printer.setPageSize(QPrinter::Letter);
+//    printer.setPaperSize(QPrinter::Letter);
+//    printer.setPaperSource(QPrinter::Auto);
+//    printer.setPrinterName(job->printer_name);
+
+//    paint_page(job, &printer);
+
+    // Print Self Test Page using CUPS command
+
+    print_self_test_page(job);
+
+    log_message("Maintenance job sent to printer " + job->printer_name + ", next job = " + job->last_maint.toString("yyyy-MM-dd hh:mm:ss."));
+
+    // Save last maint time in preferences
 
     job->last_maint = QDateTime::currentDateTime();
-
-    QPageLayout page_layout = QPageLayout(QPageSize(QPageSize::Letter), QPageLayout::Portrait, QMarginsF(.5, .5, .5, .5), QPageLayout::Inch);
-
-    QPrinter printer(QPrinter::HighResolution);
-
-    printer.setColorMode(QPrinter::Color);
-    printer.setCopyCount(1);
-    printer.setCreator("Inkjet Plumber");
-    printer.setDocName("Inkjet Plumber Maintenance Job");
-    printer.setDoubleSidedPrinting(false);
-    printer.setDuplex(QPrinter::DuplexNone);
-    printer.setFullPage(true);
-    printer.setPageLayout(page_layout);
-    printer.setPageSize(QPrinter::Letter);
-    printer.setPaperSize(QPrinter::Letter);
-    printer.setPaperSource(QPrinter::Auto);
-    printer.setPrinterName(job->printer_name);
-
-    paint_page(job, &printer);
-
     QDateTime earliest_date(QDate(2016,7,1));
 
     if (job->last_maint.isValid() && job->last_maint > earliest_date)
@@ -655,12 +735,12 @@ void MainWindow::setup_sparkle()
 
     if (development_updates_)
     {
-        interval = 24*3600;
+        interval = 1*3600;
         url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=true";
     }
     else
     {
-        interval = 7*24*3600;
+        interval = 24*3600;
         url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=false";
     }
 
@@ -668,7 +748,7 @@ void MainWindow::setup_sparkle()
     {
         updater_->setFeedURL(url);
         updater_->setUpdateCheckInterval(interval);
-        updater_->setAutomaticallyDownloadsUpdates(false);
+        updater_->setAutomaticallyDownloadsUpdates(true);
         updater_->setAutomaticallyChecksForUpdates(auto_update_);
         if (auto_update_)
             updater_->checkForUpdatesInBackground();
@@ -708,9 +788,16 @@ void MainWindow::show_printer_info(const QString& printer_name) const
         last_maint = "never";
 
     if (job->enabled)
-        next_maint = next_stamp.toString("yyyy-MM-dd hh:mm:ss");
+    {
+        if (next_stamp.isValid())
+            next_maint = next_stamp.toString("yyyy-MM-dd hh:mm:ss");
+        else
+            next_maint = "TBD";
+    }
     else
+    {
         next_maint = "disabled";
+    }
 
     log_message("Printer " + printer_name + ", last job = " + last_maint + ", next job = " + next_maint + ".");
 
