@@ -26,6 +26,7 @@
 #include <QDateTime>
 #include <QDebug>
 #include <QDir>
+#include <QFile>
 #include <QKeySequence>
 #include <QMap>
 #include <QMapIterator>
@@ -41,12 +42,15 @@
 #include <QPrinterInfo>
 #include <QPrintPreviewDialog>
 #include <QPrintPreviewWidget>
+#include <QProcess>
+#include <QProcessEnvironment>
 #include <QSet>
 #include <QSetIterator>
 #include <QSettings>
 #include <QStringList>
 #include <QStringListModel>
 #include <QSystemTrayIcon>
+#include <QTemporaryFile>
 #include <QTextDocument>
 #include <QTimer>
 
@@ -103,6 +107,7 @@ private:
     QString get_unit_string(QPageSize::Unit unit) const;
     void log_message(const QString& msg) const;
     void paint_swatch(QPrinter* printer, QPainter& painter, int* x, int y, QColor color) const;
+    void print_self_test_page(MaintenanceJob* job);
     void read_settings();
     void read_printer_settings(const QString& printer_name);
     void run_maint_job(MaintenanceJob* job);
@@ -118,6 +123,7 @@ private:
     bool auto_launch_;
     bool auto_update_;
     bool development_updates_;
+    QProcess* lpr_;
     MaintenanceJobMap maint_job_map_;
     QStringList messages_;
     bool page_paper_info_;

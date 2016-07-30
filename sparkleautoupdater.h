@@ -32,7 +32,6 @@ public:
         void        resetUpdateCycle();
         void        setAutomaticallyChecksForUpdates(bool autoChecks);
         void        setAutomaticallyDownloadsUpdates(bool autoDownloads);
-        void        setEnableUpdateMenu(bool enable);
         void        setFeedURL(QUrl& url);
         void        setUpdateCheckInterval(long seconds);
         long        updateCheckInterval();
