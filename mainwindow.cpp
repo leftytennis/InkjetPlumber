@@ -747,6 +747,20 @@ void MainWindow::setup_sparkle()
 
     if (updater_)
     {
+        QSettings s;
+        s.setValue("SUHasLaunchedBefore", true);
+        if (auto_update_)
+        {
+            s.setValue("SUAutomaticallyUpdate", true);
+            s.sync();
+        }
+        else
+        {
+            s.setValue("SUAutomaticallyUpdate", false);
+            s.sync();
+        }
+        updater_->setAutomaticallyChecksForUpdates(auto_update_);
+        updater_->setAutomaticallyDownloadsUpdates(false);
         updater_->setUpdateCheckInterval(interval);
         updater_->setFeedURL(url);
     }

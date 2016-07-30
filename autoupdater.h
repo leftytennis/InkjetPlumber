@@ -29,7 +29,6 @@ public:
     virtual void        resetUpdateCycle() = 0;
     virtual void        setAutomaticallyChecksForUpdates(bool autoChecks) = 0;
     virtual void        setAutomaticallyDownloadsUpdates(bool autoDownloads) = 0;
-    virtual void        setEnableUpdateMenu(bool enable) = 0;
     virtual void        setFeedURL(QUrl& url) = 0;
     virtual void        setUpdateCheckInterval(long seconds) = 0;
     virtual long        updateCheckInterval() = 0;

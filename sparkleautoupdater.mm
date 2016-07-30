@@ -143,14 +143,6 @@ void SparkleAutoUpdater::setAutomaticallyDownloadsUpdates(bool autoDownloads)
     return;
 }
 
-void SparkleAutoUpdater::setEnableUpdateMenu(bool enable)
-{
-    Q_UNUSED(enable);
-    NSMenu* menu = nullptr;
-    menu = [NSApp mainMenu];
-    return;
-}
-
 void SparkleAutoUpdater::setFeedURL(QUrl &url)
 {
     QString urlstr = url.toString();
