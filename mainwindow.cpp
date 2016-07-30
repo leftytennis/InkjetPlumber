@@ -162,6 +162,10 @@ MainWindow::MainWindow(QWidget* parent)
 #if defined(Q_OS_WIN)
     // Windows auto startup stuff goes here
 #endif
+
+    // don't quit when last window closed
+    qApp->setQuitOnLastWindowClosed(false);
+
     return;
 }
 
@@ -224,34 +228,33 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent* event)
 {
+    qDebug() << "spontaneous = " << event->spontaneous() << ", isVisible = " << isVisible();
 
 #if defined(Q_OS_OSX)
-    if (!event->spontaneous() || !isVisible()) return;
+    if (!event->spontaneous())
+    {
+        qApp->setQuitOnLastWindowClosed(true);
+        return;
+    }
 #endif
 
-    if (tray_.isVisible())
+    if (tray_warning_ && !qApp->closingDown())
     {
-        if (tray_warning_ && !qApp->closingDown())
-        {
-            tray_warning_ = false;
-            QSettings s;
-            s.beginGroup("general");
-            s.setValue("traywarn", tray_warning_);
-            s.sync();
-            s.endGroup();
-            QFont normal;
-            normal.setWeight(QFont::Normal);
-            QMessageBox mb;
-            mb.setFont(normal);
-            mb.setIcon(QMessageBox::Information);
-            mb.setText("Inkjet Plumber");
-            mb.setInformativeText("Inkjet Plumber will keep running in the menubar. To terminate the program, choose <strong>Quit</strong> from the context menu of the menubar.");
-            mb.setStandardButtons(QMessageBox::Ok);
-            mb.exec();
-        }
-        //hide();
-        showMinimized();
-        event->ignore();
+        tray_warning_ = false;
+        QSettings s;
+        s.beginGroup("general");
+        s.setValue("traywarn", tray_warning_);
+        s.sync();
+        s.endGroup();
+        QFont normal;
+        normal.setWeight(QFont::Normal);
+        QMessageBox mb;
+        mb.setFont(normal);
+        mb.setIcon(QMessageBox::Information);
+        mb.setText("Inkjet Plumber");
+        mb.setInformativeText("Inkjet Plumber will keep running in the menubar. To terminate the program, choose <strong>Quit</strong> from the context menu of the menubar.");
+        mb.setStandardButtons(QMessageBox::Ok);
+        mb.exec();
     }
 
     return;
@@ -869,10 +872,7 @@ void MainWindow::maint_job_updated(MaintenanceJob* job, bool save)
 void MainWindow::show_about_dialog()
 {
     if (about_dlg_)
-    {
-        show_main_window();
         about_dlg_->show();
-    }
 
     return;
 }
@@ -891,7 +891,6 @@ void MainWindow::show_preferences_dialog()
 
     if (preferences_dlg_)
     {
-        show_main_window();
         preferences_dlg_->set_maintenance_map(maint_job_map_);
         int result = preferences_dlg_->exec();
         Q_UNUSED(result);
