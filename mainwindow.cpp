@@ -31,7 +31,6 @@ MainWindow::MainWindow(QWidget* parent)
     , auto_launch_(true)
     , auto_update_(true)
     , development_updates_(false)
-    , lpr_(nullptr)
     , page_paper_info_(true)
     , preferences_dlg_(nullptr)
     , printer_info_(true)
@@ -181,12 +180,6 @@ MainWindow::~MainWindow()
     {
         delete app_menu_;
         app_menu_ = nullptr;
-    }
-
-    if (lpr_)
-    {
-        delete lpr_;
-        lpr_ = nullptr;
     }
 
     if (preferences_dlg_)
@@ -552,18 +545,7 @@ void MainWindow::print_self_test_page(MaintenanceJob* job)
 {
     if (!job) return;
 
-//    if (!lpr_)
-//    {
-//        lpr_ = new QProcess();
-//        connect(lpr_, &QProcess::started, this, &MainWindow::lpr_started);
-//        connect(lpr_, &QProcess::errorOccurred, this, &MainWindow::lpr_error_occurred);
-//        connect(lpr_, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), this, &MainWindow::lpr_finished);
-//        lpr_->setCurrentWriteChannel(0);
-//    }
-
-    QProcess lpr;
-
-    QString cmd = "#CUPS-COMMAND\nPrintSelfTestPage";
+    // Create file with CUPS PrintSelfTestPage command
 
     QFile res_file(":/files/resources/files/PrintSelfTestPage.txt");
 
@@ -575,36 +557,41 @@ void MainWindow::print_self_test_page(MaintenanceJob* job)
     temp_file_name = temp_file->fileName();
     temp_file->close();
 
+    // Setup program arguments to be passed to lpr
+
     QStringList args;
 
     args << "-T" << "Inkjet Plumber Maintenance Job";
     args << "-P" << job->printer_name;
     args << temp_file_name;
 
+    // Start a lpr process to print the maintenance job
+
+    QProcess lpr;
+
     lpr.start("/usr/bin/lpr", args);
 
-    bool success = lpr.waitForStarted();
+    bool success, started, finished;
 
-    if (success)
+    started = lpr.waitForStarted();
+
+    if (!started)
     {
-        qDebug() << "lpr started successfully, print file: " << temp_file_name;
-    }
-    else
-    {
-        qDebug() << "lpr failed to start, exitCode =" << lpr.exitCode() << ", exitStatus =" << lpr.exitStatus();
+        qDebug() << "lpr failed, exitCode =" << lpr.exitCode() << ", exitStatus =" << lpr.exitStatus();
     }
 
-    if (success)
+    if (started)
     {
-        success = lpr.waitForFinished();
-        qDebug() << "lpr finished, exitCode =" << lpr.exitCode() << ", exitStatus =" << lpr.exitStatus();
+        finished = lpr.waitForFinished();
+        if (!finished)
+        {
+            qDebug() << "lpr error waiting to finish, exitCode =" << lpr.exitCode() << ", exitStatus =" << lpr.exitStatus();
+        }
     }
 
     success = temp_file->remove();
 
-    if (success)
-        qDebug() << "Temporary file removed successfully:" << temp_file_name;
-    else
+    if (!success)
         qDebug() << "Error removing temporary file:" << temp_file_name;
 
     delete temp_file;
@@ -682,34 +669,42 @@ void MainWindow::run_maint_job(MaintenanceJob* job)
 {
     if (!job || !job->enabled) return;
 
-//    bool colors = job->cyan|job->yellow|job->magenta|job->black|job->gray|job->light_gray|job->red|job->green|job->blue;
+#if defined(Q_OS_WIN)
 
-//    if (!colors) return;
+    bool colors = job->cyan|job->yellow|job->magenta|job->black|job->gray|job->light_gray|job->red|job->green|job->blue;
 
-//    job->last_maint = QDateTime::currentDateTime();
+    if (!colors) return;
 
-//    QPageLayout page_layout = QPageLayout(QPageSize(QPageSize::Letter), QPageLayout::Portrait, QMarginsF(.5, .5, .5, .5), QPageLayout::Inch);
+    job->last_maint = QDateTime::currentDateTime();
 
-//    QPrinter printer(QPrinter::HighResolution);
+    QPageLayout page_layout = QPageLayout(QPageSize(QPageSize::Letter), QPageLayout::Portrait, QMarginsF(.5, .5, .5, .5), QPageLayout::Inch);
 
-//    printer.setColorMode(QPrinter::Color);
-//    printer.setCopyCount(1);
-//    printer.setCreator("Inkjet Plumber");
-//    printer.setDocName("Inkjet Plumber Maintenance Job");
-//    printer.setDoubleSidedPrinting(false);
-//    printer.setDuplex(QPrinter::DuplexNone);
-//    printer.setFullPage(true);
-//    printer.setPageLayout(page_layout);
-//    printer.setPageSize(QPrinter::Letter);
-//    printer.setPaperSize(QPrinter::Letter);
-//    printer.setPaperSource(QPrinter::Auto);
-//    printer.setPrinterName(job->printer_name);
+    QPrinter printer(QPrinter::HighResolution);
 
-//    paint_page(job, &printer);
+    printer.setColorMode(QPrinter::Color);
+    printer.setCopyCount(1);
+    printer.setCreator("Inkjet Plumber");
+    printer.setDocName("Inkjet Plumber Maintenance Job");
+    printer.setDoubleSidedPrinting(false);
+    printer.setDuplex(QPrinter::DuplexNone);
+    printer.setFullPage(true);
+    printer.setPageLayout(page_layout);
+    printer.setPageSize(QPrinter::Letter);
+    printer.setPaperSize(QPrinter::Letter);
+    printer.setPaperSource(QPrinter::Auto);
+    printer.setPrinterName(job->printer_name);
 
-    // Print Self Test Page using CUPS command
+    paint_page(job, &printer);
+
+#endif
+
+#if defined(Q_OS_OSX)
+
+    // Print Self Test Page using CUPS command on Mac clients
 
     print_self_test_page(job);
+
+#endif
 
     log_message("Maintenance job sent to printer " + job->printer_name + ", next job = " + job->last_maint.toString("yyyy-MM-dd hh:mm:ss."));
 

@@ -123,7 +123,6 @@ private:
     bool auto_launch_;
     bool auto_update_;
     bool development_updates_;
-    QProcess* lpr_;
     MaintenanceJobMap maint_job_map_;
     QStringList messages_;
     bool page_paper_info_;
