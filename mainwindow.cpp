@@ -249,7 +249,8 @@ void MainWindow::closeEvent(QCloseEvent* event)
             mb.setStandardButtons(QMessageBox::Ok);
             mb.exec();
         }
-        hide();
+        //hide();
+        showMinimized();
         event->ignore();
     }
 
@@ -746,12 +747,8 @@ void MainWindow::setup_sparkle()
 
     if (updater_)
     {
-        updater_->setFeedURL(url);
         updater_->setUpdateCheckInterval(interval);
-        updater_->setAutomaticallyDownloadsUpdates(true);
-        updater_->setAutomaticallyChecksForUpdates(auto_update_);
-        if (auto_update_)
-            updater_->checkForUpdatesInBackground();
+        updater_->setFeedURL(url);
     }
 
     return;
