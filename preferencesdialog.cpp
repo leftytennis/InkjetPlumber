@@ -36,6 +36,8 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     connect(ui->checkBox_run_maintenance, &QCheckBox::stateChanged, this, &PreferencesDialog::printer_state_changed);
     connect(ui->buttonBox, &QDialogButtonBox::clicked, this, &PreferencesDialog::dialog_button_clicked);
     connect(ui->checkBox_run_maintenance, &QCheckBox::toggled, this, &PreferencesDialog::maint_job_toggled);
+    connect(ui->radiobutton_use_cups_output, &QRadioButton::clicked, this, &PreferencesDialog::output_type_clicked);
+    connect(ui->radiobutton_use_ijp_output, &QRadioButton::clicked, this, &PreferencesDialog::output_type_clicked);
 
     QSettings s;
     s.beginGroup("general");
@@ -161,6 +163,12 @@ void PreferencesDialog::done(int result)
             current_job_->red = ui->listWidget_Colors->item(6)->checkState() == Qt::Checked ? true : false;
             current_job_->green = ui->listWidget_Colors->item(7)->checkState() == Qt::Checked ? true : false;
             current_job_->blue = ui->listWidget_Colors->item(8)->checkState() == Qt::Checked ? true : false;
+            IJPOutputType output_type = IJPOutputType::OutputTypeCUPS;
+            if (ui->radiobutton_use_cups_output->isChecked())
+                output_type = IJPOutputType::OutputTypeCUPS;
+            else if (ui->radiobutton_use_ijp_output->isChecked())
+                output_type = IJPOutputType::OutputTypeGenerated;
+            current_job_->output_type = output_type;
             emit update_maint_job(current_job_, true);
         }
     }
@@ -189,8 +197,25 @@ void PreferencesDialog::done(int result)
 
 void PreferencesDialog::maint_job_toggled(bool checked)
 {
-    ui->groupBox_printer_page_paper_info->setEnabled(checked);
-    ui->groupBox_Colors->setEnabled(checked);
+    ui->groupbox_output->setEnabled(checked);
+
+    if (checked && ui->radiobutton_use_ijp_output->isChecked())
+        ui->groupbox_custom_output_options->setEnabled(true);
+    else
+        ui->groupbox_custom_output_options->setEnabled(false);
+
+    return;
+}
+
+void PreferencesDialog::output_type_clicked(bool checked)
+{
+    Q_UNUSED(checked);
+
+    if (ui->radiobutton_use_cups_output->isChecked())
+        ui->groupbox_custom_output_options->setEnabled(false);
+    else if (ui->radiobutton_use_ijp_output->isChecked())
+        ui->groupbox_custom_output_options->setEnabled(true);
+
     return;
 }
 
@@ -245,16 +270,24 @@ void PreferencesDialog::setup_printer_settings(int current_row)
         MaintenanceJob* job = find_maint_job(printer_name);
         // save current job being shown in the dialog
         current_job_ = job;
-        if (job)
+        if (current_job_)
         {
             ui->checkBox_run_maintenance->setChecked(job->enabled);
             ui->lineEdit_hours->setEnabled(job->enabled);
             ui->lineEdit_hours->setText(QString::number(job->hours));
             QDateTime epoch(QDate(2016,7,1));
-            if (job->last_maint.isValid() && job->last_maint > epoch)
-                ui->label_last_maint->setText(job->last_maint.toString("yyyy-MM-dd hh:mm:ss"));
+            if (current_job_->last_maint.isValid() && current_job_->last_maint > epoch)
+                ui->label_last_maint->setText(current_job_->last_maint.toString("yyyy-MM-dd hh:mm:ss"));
             else
                 ui->label_last_maint->setText("never");
+            switch (current_job_->output_type)
+            {
+                case IJPOutputType::OutputTypeCUPS:
+                    ui->radiobutton_use_cups_output->setChecked(true);
+                    break;
+                case IJPOutputType::OutputTypeGenerated:
+                    ui->radiobutton_use_ijp_output->setChecked(true);
+            }
             if (ui->listWidget_Colors->count() == 9)
             {
                 ui->listWidget_Colors->item(0)->setCheckState(job->cyan ? Qt::Checked : Qt::Unchecked);
@@ -268,8 +301,8 @@ void PreferencesDialog::setup_printer_settings(int current_row)
                 ui->listWidget_Colors->item(8)->setCheckState(job->blue ? Qt::Checked : Qt::Unchecked);
             }
             // enable group boxes according to whether or not maint job is enabled
-            ui->groupBox_printer_page_paper_info->setEnabled(current_job_->enabled);
-            ui->groupBox_Colors->setEnabled(current_job_->enabled);
+            ui->groupbox_custom_output_options->setEnabled(current_job_->enabled);
+            ui->groupbox_output->setEnabled(current_job_->enabled);
         }
         else
         {

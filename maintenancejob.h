@@ -27,6 +27,12 @@
 #include <QMap>
 #include <QMapIterator>
 
+typedef enum IJPOutputType
+{
+    OutputTypeCUPS = 0,
+    OutputTypeGenerated = 1
+} IJPOutputType;
+
 class MaintenanceJob : public QObject
 {
     Q_OBJECT
@@ -45,19 +51,20 @@ public slots:
 
 public:
 
-    QString     printer_name;
-    bool        enabled;
-    int         hours;
-    bool        cyan;
-    bool        yellow;
-    bool        magenta;
-    bool        black;
-    bool        gray;
-    bool        light_gray;
-    bool        red;
-    bool        green;
-    bool        blue;
-    QDateTime   last_maint;
+    QString         printer_name;
+    bool            enabled;
+    int             hours;
+    bool            cyan;
+    bool            yellow;
+    bool            magenta;
+    bool            black;
+    bool            gray;
+    bool            light_gray;
+    bool            red;
+    bool            green;
+    bool            blue;
+    QDateTime       last_maint;
+    IJPOutputType   output_type;
 };
 
 Q_DECLARE_METATYPE(MaintenanceJob);

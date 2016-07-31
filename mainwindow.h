@@ -90,7 +90,6 @@ private slots:
 #if defined(Q_OS_OSX)
     void check_for_update();
 #endif
-    void paint_page(MaintenanceJob* job, QPrinter* printer);
     void maint_job_updated(MaintenanceJob* job, bool save = true);
     void show_about_dialog();
     void show_main_window();
@@ -106,7 +105,9 @@ private:
     QString get_state_string(QPrinter::PrinterState state) const;
     QString get_unit_string(QPageSize::Unit unit) const;
     void log_message(const QString& msg) const;
+    void generate_custom_page(MaintenanceJob* job, QPrinter* printer);
     void paint_swatch(QPrinter* printer, QPainter& painter, int* x, int y, QColor color) const;
+    void print_generated_test_page(MaintenanceJob* job);
     void print_self_test_page(MaintenanceJob* job);
     void read_settings();
     void read_printer_settings(const QString& printer_name);
@@ -123,7 +124,6 @@ private:
     bool auto_launch_;
     bool auto_update_;
     bool development_updates_;
-    QProcess* lpr_;
     MaintenanceJobMap maint_job_map_;
     QStringList messages_;
     bool page_paper_info_;

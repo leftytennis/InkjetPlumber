@@ -56,6 +56,7 @@ private slots:
     void dialog_button_clicked(QAbstractButton* button);
     void done(int result);
     void maint_job_toggled(bool checked);
+    void output_type_clicked(bool checked);
     void printer_state_changed(int state);
     void setup_printer_settings(int current_row);
 
