@@ -1,3 +1,3 @@
-[submodule "Sparkle"]
-	path = Sparkle
-	url = git@github.com:sparkle-project/Sparkle
+[submodule "src/Sparkle"]
+	path = src/Sparkle
+	url = https://github.com/sparkle-project/Sparkle.git
