@@ -852,8 +852,9 @@ void MainWindow::maint_job_updated(MaintenanceJob* job, bool save)
     if (!maint_job_map_.contains(job->printer_name))
     {
         maint_job_map_.insert(job->printer_name, job);
-        show_printer_info(job->printer_name);
     }
+
+    show_printer_info(job->printer_name);
 
     if (save)
         write_printer_settings(job->printer_name);
