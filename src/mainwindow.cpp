@@ -148,7 +148,9 @@ MainWindow::MainWindow(QWidget* parent)
     connect(tray_action_quit, &QAction::triggered, this, &MainWindow::close);
     connect(tray_menu_, &QMenu::aboutToShow, this, &MainWindow::about_to_show_tray_menu);
 
-    tray_.setIcon(QIcon(":/icons/InkjetPlumber.icns"));
+    QIcon icon(":/icons/InkjetPlumber.icns");
+    icon.setIsMask(true);
+    tray_.setIcon(icon);
     tray_.setContextMenu(tray_menu_);
     tray_.show();
 
