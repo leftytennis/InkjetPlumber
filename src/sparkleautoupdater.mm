@@ -8,15 +8,15 @@
 #include <AppKit/AppKit.h>
 #include <Cocoa/Cocoa.h>
 
-#include "sparkleautoUpdater.h"
+#include "sparkleautoupdater.h"
 #include <Sparkle/Sparkle.h>
 
 @class NSMenuItem;
 
 class SparkleAutoUpdater::Private
 {
-    public:
-        SUUpdater* updater;
+public:
+    SUUpdater *updater;
 };
 
 SparkleAutoUpdater::SparkleAutoUpdater()
@@ -41,7 +41,9 @@ bool SparkleAutoUpdater::automaticallyChecksForUpdates()
     BOOL b = NO;
 
     if (d->updater)
+    {
         b = [d->updater automaticallyChecksForUpdates];
+    }
 
     return b;
 }
@@ -51,7 +53,9 @@ bool SparkleAutoUpdater::automaticallyDownloadsUpdates()
     BOOL b = NO;
 
     if (d->updater)
+    {
         b = [d->updater automaticallyDownloadsUpdates];
+    }
 
     return b;
 }
@@ -59,7 +63,9 @@ bool SparkleAutoUpdater::automaticallyDownloadsUpdates()
 void SparkleAutoUpdater::checkForUpdateInformation()
 {
     if (d->updater)
+    {
         [d->updater checkForUpdateInformation];
+    }
 
     return;
 }
@@ -67,7 +73,9 @@ void SparkleAutoUpdater::checkForUpdateInformation()
 void SparkleAutoUpdater::checkForUpdates()
 {
     if (d->updater)
+    {
         [d->updater checkForUpdates:nullptr];
+    }
 
     return;
 }
@@ -75,7 +83,9 @@ void SparkleAutoUpdater::checkForUpdates()
 void SparkleAutoUpdater::checkForUpdatesInBackground()
 {
     if (d->updater)
+    {
         [d->updater checkForUpdatesInBackground];
+    }
 
     return;
 }
@@ -83,8 +93,8 @@ void SparkleAutoUpdater::checkForUpdatesInBackground()
 QUrl SparkleAutoUpdater::feedURL()
 {
     QUrl url;
-    NSURL* feedURL = nullptr;
-    NSString* string = nullptr;
+    NSURL *feedURL = nullptr;
+    NSString *string = nullptr;
 
     if (d->updater)
     {
@@ -101,7 +111,7 @@ QDateTime SparkleAutoUpdater::lastUpdateCheckDate()
 {
     NSTimeInterval ti = 0;
 
-    NSDate* aNSDate;
+    NSDate *aNSDate;
 
     aNSDate = [d->updater lastUpdateCheckDate];
 
@@ -146,8 +156,8 @@ void SparkleAutoUpdater::setAutomaticallyDownloadsUpdates(bool autoDownloads)
 void SparkleAutoUpdater::setFeedURL(QUrl &url)
 {
     QString urlstr = url.toString();
-    NSURL* feedURL = nullptr;
-    NSString* string = nullptr;
+    NSURL *feedURL = nullptr;
+    NSString *string = nullptr;
 
     if (d->updater)
     {
