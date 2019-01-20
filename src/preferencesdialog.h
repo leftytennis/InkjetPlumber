@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2016 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -32,7 +32,8 @@
 
 #include "maintenancejob.h"
 
-namespace Ui {
+namespace Ui
+{
 class PreferencesDialog;
 }
 
@@ -41,19 +42,19 @@ class PreferencesDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit PreferencesDialog(QWidget* parent = 0);
+    explicit PreferencesDialog(QWidget *parent = 0);
     ~PreferencesDialog();
 
-    void set_maintenance_map(MaintenanceJobMap& map);
+    void set_maintenance_map(MaintenanceJobMap &map);
 
 signals:
 
     void settings_updated();
-    void update_maint_job(MaintenanceJob* job, bool save = true);
+    void update_maint_job(MaintenanceJob *job, bool save = true);
 
 private slots:
 
-    void dialog_button_clicked(QAbstractButton* button);
+    void dialog_button_clicked(QAbstractButton *button);
     void done(int result);
     void maint_job_toggled(bool checked);
     void output_type_clicked(bool checked);
@@ -62,12 +63,12 @@ private slots:
 
 private:
 
-    QListWidgetItem* create_color_item(const QColor color) const;
-    MaintenanceJob* find_maint_job(const QString& printer_name) const;
+    QListWidgetItem *create_color_item(const QColor color) const;
+    MaintenanceJob *find_maint_job(const QString &printer_name) const;
 
-    MaintenanceJob* current_job_;
+    MaintenanceJob *current_job_;
     MaintenanceJobMap maint_job_map_;
-    Ui::PreferencesDialog* ui;
+    Ui::PreferencesDialog *ui;
 };
 
 #endif // PREFERENCESDIALOG_H

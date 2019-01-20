@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2016 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -25,7 +25,7 @@
 #include "preferencesdialog.h"
 #include "ui_preferencesdialog.h"
 
-PreferencesDialog::PreferencesDialog(QWidget* parent)
+PreferencesDialog::PreferencesDialog(QWidget *parent)
     : QDialog(parent)
     , current_job_(nullptr)
     , ui(new Ui::PreferencesDialog)
@@ -89,20 +89,20 @@ PreferencesDialog::~PreferencesDialog()
     return;
 }
 
-QListWidgetItem* PreferencesDialog::create_color_item(const QColor color) const
+QListWidgetItem *PreferencesDialog::create_color_item(const QColor color) const
 {
     QString color_name = color.name();
     QPixmap pixmap(150, 150);
     pixmap.fill(color);
     QIcon icon(pixmap);
 
-    QListWidgetItem* item = new QListWidgetItem(icon, color_name);
+    QListWidgetItem *item = new QListWidgetItem(icon, color_name);
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
 
     return item;
 }
 
-void PreferencesDialog::dialog_button_clicked(QAbstractButton* button)
+void PreferencesDialog::dialog_button_clicked(QAbstractButton *button)
 {
     if (button)
     {
@@ -165,15 +165,22 @@ void PreferencesDialog::done(int result)
             current_job_->blue = ui->listWidget_Colors->item(8)->checkState() == Qt::Checked ? true : false;
             IJPOutputType output_type = IJPOutputType::OutputTypeCUPS;
             if (ui->radiobutton_use_cups_output->isChecked())
+            {
                 output_type = IJPOutputType::OutputTypeCUPS;
+            }
             else if (ui->radiobutton_use_ijp_output->isChecked())
+            {
                 output_type = IJPOutputType::OutputTypeGenerated;
+            }
             current_job_->output_type = output_type;
             emit update_maint_job(current_job_, true);
         }
     }
 
-    if (is_error) return;
+    if (is_error)
+    {
+        return;
+    }
 
     // all field validation passed, save settings
 
@@ -200,9 +207,13 @@ void PreferencesDialog::maint_job_toggled(bool checked)
     ui->groupbox_output->setEnabled(checked);
 
     if (checked && ui->radiobutton_use_ijp_output->isChecked())
+    {
         ui->groupbox_custom_output_options->setEnabled(true);
+    }
     else
+    {
         ui->groupbox_custom_output_options->setEnabled(false);
+    }
 
     return;
 }
@@ -212,19 +223,25 @@ void PreferencesDialog::output_type_clicked(bool checked)
     Q_UNUSED(checked);
 
     if (ui->radiobutton_use_cups_output->isChecked())
+    {
         ui->groupbox_custom_output_options->setEnabled(false);
+    }
     else if (ui->radiobutton_use_ijp_output->isChecked())
+    {
         ui->groupbox_custom_output_options->setEnabled(true);
+    }
 
     return;
 }
 
-MaintenanceJob* PreferencesDialog::find_maint_job(const QString& printer_name) const
+MaintenanceJob *PreferencesDialog::find_maint_job(const QString &printer_name) const
 {
-    MaintenanceJob* job = nullptr;
+    MaintenanceJob *job = nullptr;
 
     if (maint_job_map_.contains(printer_name))
+    {
         job = maint_job_map_.value(printer_name);
+    }
 
     return job;
 }
@@ -237,7 +254,7 @@ void PreferencesDialog::printer_state_changed(int state)
     return;
 }
 
-void PreferencesDialog::set_maintenance_map(MaintenanceJobMap& map)
+void PreferencesDialog::set_maintenance_map(MaintenanceJobMap &map)
 {
     maint_job_map_ = map;
 
@@ -248,7 +265,7 @@ void PreferencesDialog::set_maintenance_map(MaintenanceJobMap& map)
     while (it.hasNext())
     {
         it.next();
-        MaintenanceJob* job = it.value();
+        MaintenanceJob *job = it.value();
         ui->listWidget_Settings->addItem(job->printer_name);
     }
 
@@ -262,12 +279,12 @@ void PreferencesDialog::setup_printer_settings(int current_row)
 {
     Q_UNUSED(current_row);
 
-    QListWidgetItem* item = ui->listWidget_Settings->currentItem();
+    QListWidgetItem *item = ui->listWidget_Settings->currentItem();
 
     if (item)
     {
         QString printer_name = item->text();
-        MaintenanceJob* job = find_maint_job(printer_name);
+        MaintenanceJob *job = find_maint_job(printer_name);
         // save current job being shown in the dialog
         current_job_ = job;
         if (current_job_)
@@ -277,9 +294,13 @@ void PreferencesDialog::setup_printer_settings(int current_row)
             ui->lineEdit_hours->setText(QString::number(job->hours));
             QDateTime epoch(QDate(2016,7,1));
             if (current_job_->last_maint.isValid() && current_job_->last_maint > epoch)
+            {
                 ui->label_last_maint->setText(current_job_->last_maint.toString("yyyy-MM-dd hh:mm:ss"));
+            }
             else
+            {
                 ui->label_last_maint->setText("never");
+            }
             switch (current_job_->output_type)
             {
                 case IJPOutputType::OutputTypeCUPS:
