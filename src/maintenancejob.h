@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2016 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -39,11 +39,11 @@ class MaintenanceJob : public QObject
 
 public:
 
-    explicit MaintenanceJob(QObject* parent = 0);
-    MaintenanceJob(const QString& name, QObject* parent = 0);
-    MaintenanceJob(const MaintenanceJob& rhs);
+    explicit MaintenanceJob(QObject *parent = 0);
+    MaintenanceJob(const QString &name, QObject *parent = 0);
+    MaintenanceJob(const MaintenanceJob &rhs);
     ~MaintenanceJob();
-    MaintenanceJob& operator=(const MaintenanceJob& rhs);
+    MaintenanceJob &operator=(const MaintenanceJob &rhs);
 
 signals:
 
@@ -68,10 +68,10 @@ public:
 };
 
 Q_DECLARE_METATYPE(MaintenanceJob);
-Q_DECLARE_METATYPE(MaintenanceJob*);
+Q_DECLARE_METATYPE(MaintenanceJob *);
 
-typedef QList<MaintenanceJob*> MaintenanceJobList;
-typedef QMap<QString, MaintenanceJob*> MaintenanceJobMap;
-typedef QMapIterator<QString, MaintenanceJob*> MaintenanceJobMapIterator;
+typedef QList<MaintenanceJob *> MaintenanceJobList;
+typedef QMap<QString, MaintenanceJob *> MaintenanceJobMap;
+typedef QMapIterator<QString, MaintenanceJob *> MaintenanceJobMapIterator;
 
 #endif // MAINTENANCEJOB_H

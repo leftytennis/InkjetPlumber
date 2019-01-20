@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2016 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -62,7 +62,8 @@
 #include "sparkleautoupdater.h"
 #endif
 
-namespace Ui {
+namespace Ui
+{
 class MainWindow;
 }
 
@@ -72,17 +73,17 @@ class MainWindow : public QMainWindow
 
 public:
 #if defined(Q_OS_OSX)
-    explicit MainWindow(SparkleAutoUpdater* updater = 0, QWidget* parent = 0);
+    explicit MainWindow(SparkleAutoUpdater *updater = 0, QWidget *parent = 0);
 #else
-    explicit MainWindow(QWidget* parent = 0);
+    explicit MainWindow(QWidget *parent = 0);
 #endif
     ~MainWindow();
 
-    virtual void closeEvent(QCloseEvent* event);
+    virtual void closeEvent(QCloseEvent *event);
 
 signals:
 
-    void update_maint_job(MaintenanceJob* job, bool save = true);
+    void update_maint_job(MaintenanceJob *job, bool save = true);
 
 private slots:
 
@@ -90,7 +91,7 @@ private slots:
 #if defined(Q_OS_OSX)
     void check_for_update();
 #endif
-    void maint_job_updated(MaintenanceJob* job, bool save = true);
+    void maint_job_updated(MaintenanceJob *job, bool save = true);
     void show_about_dialog();
     void show_main_window();
     void show_preferences_dialog();
@@ -98,44 +99,44 @@ private slots:
 
 private:
 
-    MaintenanceJob* find_maint_job(const QString& printer_name) const;
+    MaintenanceJob *find_maint_job(const QString &printer_name) const;
     QString get_color_mode_string(QPrinter::ColorMode color_mode) const;
     QString get_duplex_string(QPrinter::DuplexMode mode) const;
-    QString get_pagesize_string(const QPageSize& page_size) const;
+    QString get_pagesize_string(const QPageSize &page_size) const;
     QString get_state_string(QPrinter::PrinterState state) const;
     QString get_unit_string(QPageSize::Unit unit) const;
-    void log_message(const QString& msg) const;
-    void generate_custom_page(MaintenanceJob* job, QPrinter* printer);
-    void paint_swatch(QPrinter* printer, QPainter& painter, int* x, int y, QColor color) const;
-    void print_generated_test_page(MaintenanceJob* job);
-    void print_self_test_page(MaintenanceJob* job);
+    void log_message(const QString &msg) const;
+    void generate_custom_page(MaintenanceJob *job, QPrinter *printer);
+    void paint_swatch(QPrinter *printer, QPainter &painter, int *x, int y, QColor color) const;
+    void print_generated_test_page(MaintenanceJob *job);
+    void print_self_test_page(MaintenanceJob *job);
     void read_settings();
-    void read_printer_settings(const QString& printer_name);
-    void run_maint_job(MaintenanceJob* job);
+    void read_printer_settings(const QString &printer_name);
+    void run_maint_job(MaintenanceJob *job);
 #if defined(Q_OS_OSX)
     void setup_sparkle();
 #endif
-    void show_printer_info(const QString& printer_name) const;
-    void write_printer_settings(const QString& printer_name);
-    void write_printer_settings(MaintenanceJob* job);
+    void show_printer_info(const QString &printer_name) const;
+    void write_printer_settings(const QString &printer_name);
+    void write_printer_settings(MaintenanceJob *job);
 
-    AboutDialog* about_dlg_;
-    QMenu* app_menu_;
+    AboutDialog *about_dlg_;
+    QMenu *app_menu_;
     bool auto_launch_;
     bool auto_update_;
     bool development_updates_;
     MaintenanceJobMap maint_job_map_;
     QStringList messages_;
     bool page_paper_info_;
-    PreferencesDialog* preferences_dlg_;
+    PreferencesDialog *preferences_dlg_;
     bool printer_info_;
-    QTimer* timer_;
+    QTimer *timer_;
     QSystemTrayIcon tray_;
-    QMenu* tray_menu_;
+    QMenu *tray_menu_;
     bool tray_warning_;
-    Ui::MainWindow* ui;
+    Ui::MainWindow *ui;
 #if defined(Q_OS_OSX)
-    SparkleAutoUpdater* updater_;
+    SparkleAutoUpdater *updater_;
 #endif
 };
 

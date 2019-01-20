@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2016 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -21,7 +21,7 @@
 
 #include "maintenancejob.h"
 
-MaintenanceJob::MaintenanceJob(QObject* parent)
+MaintenanceJob::MaintenanceJob(QObject *parent)
     : QObject(parent)
     , enabled(false)
     , hours(55)
@@ -40,7 +40,7 @@ MaintenanceJob::MaintenanceJob(QObject* parent)
     return;
 }
 
-MaintenanceJob::MaintenanceJob(const QString& name, QObject* parent)
+MaintenanceJob::MaintenanceJob(const QString &name, QObject *parent)
     : QObject(parent)
     , printer_name(name)
     , enabled(false)
@@ -60,7 +60,7 @@ MaintenanceJob::MaintenanceJob(const QString& name, QObject* parent)
     return;
 }
 
-MaintenanceJob::MaintenanceJob(const MaintenanceJob& rhs)
+MaintenanceJob::MaintenanceJob(const MaintenanceJob &rhs)
     : QObject(rhs.parent())
     , printer_name(rhs.printer_name)
     , enabled(rhs.enabled)
@@ -85,7 +85,7 @@ MaintenanceJob::~MaintenanceJob()
     return;
 }
 
-MaintenanceJob& MaintenanceJob::operator=(const MaintenanceJob& rhs)
+MaintenanceJob &MaintenanceJob::operator=(const MaintenanceJob &rhs)
 {
     printer_name = rhs.printer_name;
     enabled = rhs.enabled;

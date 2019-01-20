@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2016 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -28,7 +28,7 @@
 #include "sparkleautoupdater.h"
 #endif
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     a.setApplicationName("Inkjet Plumber");
@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     a.setOrganizationName("Jeff Thompson");
 
 #if defined(Q_OS_OSX)
-    SparkleAutoUpdater* updater = nullptr;
+    SparkleAutoUpdater *updater = nullptr;
     CocoaInitializer initializer;
     updater = new SparkleAutoUpdater();
     MainWindow w(updater);

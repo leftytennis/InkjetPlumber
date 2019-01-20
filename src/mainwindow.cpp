@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2016 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -21,9 +21,9 @@
 #include "ui_mainwindow.h"
 
 #if defined(Q_OS_OSX)
-MainWindow::MainWindow(SparkleAutoUpdater* updater, QWidget* parent)
+MainWindow::MainWindow(SparkleAutoUpdater *updater, QWidget *parent)
 #else
-MainWindow::MainWindow(QWidget* parent)
+MainWindow::MainWindow(QWidget *parent)
 #endif
     : QMainWindow(parent)
     , about_dlg_(nullptr)
@@ -51,7 +51,7 @@ MainWindow::MainWindow(QWidget* parent)
     setWindowIcon(QIcon(":/icons/InkjetPlumber.icns"));
 
     qRegisterMetaType<MaintenanceJob>("MaintenanceJob");
-    qRegisterMetaType<MaintenanceJob*>("MaintenanceJob*");
+    qRegisterMetaType<MaintenanceJob *>("MaintenanceJob*");
 
     ui->listWidget->setFont(QFont("Courier New", 10));
 
@@ -79,24 +79,24 @@ MainWindow::MainWindow(QWidget* parent)
     menuBar()->setNativeMenuBar(true);
     app_menu_ = new QMenu(this);
 
-    QAction* action_about = app_menu_->addAction("About Inkjet Plumber...");
+    QAction *action_about = app_menu_->addAction("About Inkjet Plumber...");
     action_about->setObjectName("action_about");
     action_about->setMenuRole(QAction::AboutRole);
     action_about->setShortcut(Qt::CTRL+Qt::Key_A);
 
 #if defined(Q_OS_OSX)
-    QAction* action_update = app_menu_->addAction("Check for Update...");
+    QAction *action_update = app_menu_->addAction("Check for Update...");
     action_update->setObjectName("action_update");
     action_update->setShortcut(QKeySequence("Ctrl+U"));
     action_update->setMenuRole(QAction::ApplicationSpecificRole);
 #endif
 
-    QAction* action_prefs = app_menu_->addAction("Preferences...");
+    QAction *action_prefs = app_menu_->addAction("Preferences...");
     action_prefs->setShortcut(Qt::CTRL+Qt::Key_Comma);
     action_prefs->setObjectName("action_prefs");
     action_prefs->setMenuRole(QAction::PreferencesRole);
 
-    QAction* action_exit = app_menu_->addAction("Exit");
+    QAction *action_exit = app_menu_->addAction("Exit");
     action_exit->setObjectName("action_exit");
     action_exit->setMenuRole(QAction::QuitRole);
 
@@ -114,21 +114,21 @@ MainWindow::MainWindow(QWidget* parent)
     tray_menu_ = new QMenu(this);
     tray_menu_->setShortcutEnabled(true);
 
-    QAction* tray_action_about = new QAction("About Inkjet Plumber...");
+    QAction *tray_action_about = new QAction("About Inkjet Plumber...");
     tray_action_about->setShortcut(Qt::CTRL+Qt::Key_A);
 
-    QAction* tray_action_prefs = new QAction("Preferences...");
+    QAction *tray_action_prefs = new QAction("Preferences...");
     tray_action_prefs->setShortcut(Qt::CTRL+Qt::Key_Comma);
 
 #if defined(Q_OS_OSX)
-    QAction* tray_action_update = new QAction("Check for Update...");
+    QAction *tray_action_update = new QAction("Check for Update...");
     tray_action_update->setShortcut(Qt::CTRL+Qt::Key_U);
 #endif
 
-    QAction* tray_action_show = new QAction("Show Inkjet Plumber");
+    QAction *tray_action_show = new QAction("Show Inkjet Plumber");
     tray_action_show->setObjectName("tray_action_show");
 
-    QAction* tray_action_quit = new QAction("Quit");
+    QAction *tray_action_quit = new QAction("Quit");
 //    tray_action_quit->setShortcut(Qt::CTRL+Qt::Key_Q);
 
     tray_menu_->addAction(tray_action_about);
@@ -157,7 +157,9 @@ MainWindow::MainWindow(QWidget* parent)
 #if defined(Q_OS_OSX)
     // setup sparkle for auto updates
     if (auto_update_)
+    {
         setup_sparkle();
+    }
 #endif
 
 #if defined(Q_OS_WIN)
@@ -221,7 +223,7 @@ MainWindow::~MainWindow()
     return;
 }
 
-void MainWindow::closeEvent(QCloseEvent* event)
+void MainWindow::closeEvent(QCloseEvent *event)
 {
     qDebug() << "spontaneous = " << event->spontaneous() << ", isVisible = " << isVisible();
 
@@ -257,17 +259,21 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::about_to_show_tray_menu()
 {
-    QList<QAction*> actions = tray_menu_->actions();
+    QList<QAction *> actions = tray_menu_->actions();
 
     for (int i = 0; i < actions.count(); i++)
     {
-        QAction* action = actions[i];
+        QAction *action = actions[i];
         if (action->objectName() == "tray_action_show")
         {
             if (isActiveWindow())
+            {
                 action->setEnabled(false);
+            }
             else
+            {
                 action->setEnabled(true);
+            }
             return;
         }
     }
@@ -275,17 +281,19 @@ void MainWindow::about_to_show_tray_menu()
     return;
 }
 
-MaintenanceJob* MainWindow::find_maint_job(const QString& printer_name) const
+MaintenanceJob *MainWindow::find_maint_job(const QString &printer_name) const
 {
-    MaintenanceJob* job = nullptr;
+    MaintenanceJob *job = nullptr;
 
     if (maint_job_map_.contains(printer_name))
+    {
         job = maint_job_map_.value(printer_name);
+    }
 
     return job;
 }
 
-void MainWindow::generate_custom_page(MaintenanceJob* job, QPrinter* printer)
+void MainWindow::generate_custom_page(MaintenanceJob *job, QPrinter *printer)
 {
     QFont tahoma("Tahoma", 10);
     QFont courier("Courier New", 10);
@@ -303,15 +311,42 @@ void MainWindow::generate_custom_page(MaintenanceJob* job, QPrinter* printer)
     int resolution = printer->resolution();
     int offset = 0;
 
-    if (job->cyan)          paint_swatch(printer, painter, &offset, 50, Qt::cyan);
-    if (job->magenta)       paint_swatch(printer, painter, &offset, 50, Qt::magenta);
-    if (job->yellow)        paint_swatch(printer, painter, &offset, 50, Qt::yellow);
-    if (job->black)         paint_swatch(printer, painter, &offset, 50, Qt::black);
-    if (job->gray)          paint_swatch(printer, painter, &offset, 50, Qt::gray);
-    if (job->light_gray)    paint_swatch(printer, painter, &offset, 50, Qt::lightGray);
-    if (job->red)           paint_swatch(printer, painter, &offset, 50, Qt::red);
-    if (job->green)         paint_swatch(printer, painter, &offset, 50, Qt::green);
-    if (job->blue)          paint_swatch(printer, painter, &offset, 50, Qt::blue);
+    if (job->cyan)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::cyan);
+    }
+    if (job->magenta)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::magenta);
+    }
+    if (job->yellow)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::yellow);
+    }
+    if (job->black)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::black);
+    }
+    if (job->gray)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::gray);
+    }
+    if (job->light_gray)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::lightGray);
+    }
+    if (job->red)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::red);
+    }
+    if (job->green)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::green);
+    }
+    if (job->blue)
+    {
+        paint_swatch(printer, painter, &offset, 50, Qt::blue);
+    }
 
     QPrinterInfo printer_info(*printer);
     QPageSize page_size(printer->pageLayout().pageSize());
@@ -367,15 +402,15 @@ QString MainWindow::get_color_mode_string(QPrinter::ColorMode color_mode) const
 
     switch (color_mode)
     {
-    case QPrinter::GrayScale:
-        color_mode_str = "GrayScale";
-        break;
-    case QPrinter::Color:
-        color_mode_str = "Color";
-        break;
-    default:
-        color_mode_str = "Unknown";
-        break;
+        case QPrinter::GrayScale:
+            color_mode_str = "GrayScale";
+            break;
+        case QPrinter::Color:
+            color_mode_str = "Color";
+            break;
+        default:
+            color_mode_str = "Unknown";
+            break;
     }
 
     return color_mode_str;
@@ -388,36 +423,36 @@ QString MainWindow::get_duplex_string(QPrinter::DuplexMode mode) const
     switch (mode)
     {
         case QPrinter::DuplexNone:
-        {
-            mode_str = "None";
-            break;
-        }
+            {
+                mode_str = "None";
+                break;
+            }
         case QPrinter::DuplexAuto:
-        {
-            mode_str = "Auto";
-            break;
-        }
+            {
+                mode_str = "Auto";
+                break;
+            }
         case QPrinter::DuplexLongSide:
-        {
-            mode_str = "Long Side";
-            break;
-        }
+            {
+                mode_str = "Long Side";
+                break;
+            }
         case QPrinter::DuplexShortSide:
-        {
-            mode_str = "Short Side";
-            break;
-        }
+            {
+                mode_str = "Short Side";
+                break;
+            }
         default:
-        {
-            mode_str = "Unknonwn";
-            break;
-        }
+            {
+                mode_str = "Unknonwn";
+                break;
+            }
     }
 
     return mode_str;
 }
 
-QString MainWindow::get_pagesize_string(const QPageSize& page_size) const
+QString MainWindow::get_pagesize_string(const QPageSize &page_size) const
 {
     QString page_size_str;
 
@@ -440,21 +475,21 @@ QString MainWindow::get_state_string(QPrinter::PrinterState state) const
 
     switch (state)
     {
-    case QPrinter::Idle:
-        state_str = "Idle";
-        break;
-    case QPrinter::Active:
-        state_str = "Active";
-        break;
-    case QPrinter::Aborted:
-        state_str = "Aborted";
-        break;
-    case QPrinter::Error:
-        state_str = "Error";
-        break;
-    default:
-        state_str = "Unknown";
-        break;
+        case QPrinter::Idle:
+            state_str = "Idle";
+            break;
+        case QPrinter::Active:
+            state_str = "Active";
+            break;
+        case QPrinter::Aborted:
+            state_str = "Aborted";
+            break;
+        case QPrinter::Error:
+            state_str = "Error";
+            break;
+        default:
+            state_str = "Unknown";
+            break;
     }
 
     return state_str;
@@ -466,40 +501,40 @@ QString MainWindow::get_unit_string(QPageSize::Unit unit) const
 
     switch (unit)
     {
-    case QPageSize::Millimeter:
-        unit_str = "millimeters";
-        break;
-    case QPageSize::Point:
-        unit_str = "points";
-        break;
-    case QPageSize::Inch:
-        unit_str = "inches";
-        break;
-    case QPageSize::Pica:
-        unit_str = "picas";
-        break;
-    case QPageSize::Didot:
-        unit_str = "didot";
-        break;
-    case QPageSize::Cicero:
-        unit_str = "cicero";
-        break;
-    default:
-        unit_str = "Unknown";
-        break;
+        case QPageSize::Millimeter:
+            unit_str = "millimeters";
+            break;
+        case QPageSize::Point:
+            unit_str = "points";
+            break;
+        case QPageSize::Inch:
+            unit_str = "inches";
+            break;
+        case QPageSize::Pica:
+            unit_str = "picas";
+            break;
+        case QPageSize::Didot:
+            unit_str = "didot";
+            break;
+        case QPageSize::Cicero:
+            unit_str = "cicero";
+            break;
+        default:
+            unit_str = "Unknown";
+            break;
     }
 
     return unit_str;
 }
 
-void MainWindow::log_message(const QString& msg) const
+void MainWindow::log_message(const QString &msg) const
 {
     QDateTime now = QDateTime::currentDateTime();
     ui->listWidget->addItem(now.toString("yyyy-MM-dd hh:mm:ss ") + msg);
     return;
 }
 
-void MainWindow::paint_swatch(QPrinter* printer, QPainter& painter, int *x, int y, QColor color) const
+void MainWindow::paint_swatch(QPrinter *printer, QPainter &painter, int *x, int y, QColor color) const
 {
     const int resolution = printer->resolution();
     const int width = resolution / 2;
@@ -539,11 +574,17 @@ void MainWindow::paint_swatch(QPrinter* printer, QPainter& painter, int *x, int 
 
 void MainWindow::print_generated_test_page(MaintenanceJob *job)
 {
-    if (!job) return;
+    if (!job)
+    {
+        return;
+    }
 
     bool colors = job->cyan|job->yellow|job->magenta|job->black|job->gray|job->light_gray|job->red|job->green|job->blue;
 
-    if (!colors) return;
+    if (!colors)
+    {
+        return;
+    }
 
     QPageLayout page_layout = QPageLayout(QPageSize(QPageSize::Letter),
                                           QPageLayout::Portrait,
@@ -570,16 +611,19 @@ void MainWindow::print_generated_test_page(MaintenanceJob *job)
     return;
 }
 
-void MainWindow::print_self_test_page(MaintenanceJob* job)
+void MainWindow::print_self_test_page(MaintenanceJob *job)
 {
-    if (!job) return;
+    if (!job)
+    {
+        return;
+    }
 
     // Create file with CUPS PrintSelfTestPage command
 
     QFile res_file(":/files/resources/files/PrintSelfTestPage.txt");
 
     QString temp_file_name;
-    QTemporaryFile* temp_file = QTemporaryFile::createNativeFile(res_file);
+    QTemporaryFile *temp_file = QTemporaryFile::createNativeFile(res_file);
 
     temp_file->setAutoRemove(false);
     temp_file->open();
@@ -621,7 +665,9 @@ void MainWindow::print_self_test_page(MaintenanceJob* job)
     success = temp_file->remove();
 
     if (!success)
+    {
         qDebug() << "Error removing temporary file:" << temp_file_name;
+    }
 
     delete temp_file;
 
@@ -646,11 +692,16 @@ void MainWindow::read_settings()
 
     if (auto_launch_)
     {
-        if (launch_agent.exists()) launch_agent.remove();
+        if (launch_agent.exists())
+        {
+            launch_agent.remove();
+        }
         QFile res_file(":/files/resources/files/LaunchAgent.plist");
         bool success = res_file.copy(launch_agent.fileName());
         if (!success)
+        {
             qDebug() << "Installation of launch agent failed!";
+        }
     }
     else
     {
@@ -664,9 +715,9 @@ void MainWindow::read_settings()
     return;
 }
 
-void MainWindow::read_printer_settings(const QString& printer_name)
+void MainWindow::read_printer_settings(const QString &printer_name)
 {
-    MaintenanceJob* job = find_maint_job(printer_name);
+    MaintenanceJob *job = find_maint_job(printer_name);
 
     if (!job)
     {
@@ -695,16 +746,25 @@ void MainWindow::read_printer_settings(const QString& printer_name)
     return;
 }
 
-void MainWindow::run_maint_job(MaintenanceJob* job)
+void MainWindow::run_maint_job(MaintenanceJob *job)
 {
-    if (!job || !job->enabled) return;
+    if (!job || !job->enabled)
+    {
+        return;
+    }
 
     if (job->output_type == IJPOutputType::OutputTypeCUPS)
+    {
         print_self_test_page(job);
+    }
     else if (job->output_type == IJPOutputType::OutputTypeGenerated)
+    {
         print_generated_test_page(job);
+    }
     else
+    {
         return;
+    }
 
     job->last_maint = QDateTime::currentDateTime();
     QDateTime next_maint = job->last_maint.addSecs(job->hours*3600);
@@ -774,17 +834,22 @@ void MainWindow::setup_sparkle()
 void MainWindow::check_for_update()
 {
     if (updater_)
+    {
         updater_->checkForUpdates();
+    }
 
     return;
 }
 
 #endif
 
-void MainWindow::show_printer_info(const QString& printer_name) const
+void MainWindow::show_printer_info(const QString &printer_name) const
 {
     MaintenanceJob *job = find_maint_job(printer_name);
-    if (!job) return;
+    if (!job)
+    {
+        return;
+    }
 
     QDateTime next_stamp = job->last_maint.addSecs(job->hours*3600);
 
@@ -793,16 +858,24 @@ void MainWindow::show_printer_info(const QString& printer_name) const
     QDateTime epoch(QDate(2016,7,1));
 
     if (job->last_maint.isValid() && job->last_maint > epoch)
+    {
         last_maint = job->last_maint.toString("yyyy-MM-dd hh:mm:ss");
+    }
     else
+    {
         last_maint = "never";
+    }
 
     if (job->enabled)
     {
         if (next_stamp.isValid())
+        {
             next_maint = next_stamp.toString("yyyy-MM-dd hh:mm:ss");
+        }
         else
+        {
             next_maint = "TBD";
+        }
     }
     else
     {
@@ -814,9 +887,9 @@ void MainWindow::show_printer_info(const QString& printer_name) const
     return;
 }
 
-void MainWindow::write_printer_settings(const QString& printer_name)
+void MainWindow::write_printer_settings(const QString &printer_name)
 {
-    MaintenanceJob* job = find_maint_job(printer_name);
+    MaintenanceJob *job = find_maint_job(printer_name);
     write_printer_settings(job);
     return;
 }
@@ -839,7 +912,9 @@ void MainWindow::write_printer_settings(MaintenanceJob *job)
         s.setValue("green", job->green);
         s.setValue("blue", job->blue);
         if (job->last_maint.isValid())
+        {
             s.setValue("last_maint", job->last_maint);
+        }
         s.setValue("output_type", job->output_type);
         s.endGroup();
     }
@@ -847,9 +922,12 @@ void MainWindow::write_printer_settings(MaintenanceJob *job)
     return;
 }
 
-void MainWindow::maint_job_updated(MaintenanceJob* job, bool save)
+void MainWindow::maint_job_updated(MaintenanceJob *job, bool save)
 {
-    if (!job) return;
+    if (!job)
+    {
+        return;
+    }
 
     if (!maint_job_map_.contains(job->printer_name))
     {
@@ -859,10 +937,14 @@ void MainWindow::maint_job_updated(MaintenanceJob* job, bool save)
     show_printer_info(job->printer_name);
 
     if (save)
+    {
         write_printer_settings(job->printer_name);
+    }
 
     if (preferences_dlg_)
+    {
         preferences_dlg_->set_maintenance_map(maint_job_map_);
+    }
 
     return;
 }
@@ -870,7 +952,9 @@ void MainWindow::maint_job_updated(MaintenanceJob* job, bool save)
 void MainWindow::show_about_dialog()
 {
     if (about_dlg_)
+    {
         about_dlg_->show();
+    }
 
     return;
 }
@@ -910,7 +994,7 @@ void MainWindow::timer_expired()
         QString printer_name = printers[i];
         if (!maint_job_map_.contains(printer_name))
         {
-            MaintenanceJob* job = new MaintenanceJob(printer_name);
+            MaintenanceJob *job = new MaintenanceJob(printer_name);
             emit update_maint_job(job, true);
         }
     }
@@ -923,7 +1007,10 @@ void MainWindow::timer_expired()
     {
         it.next();
         MaintenanceJob *job = it.value();
-        if (!job->enabled) continue;
+        if (!job->enabled)
+        {
+            continue;
+        }
         QDateTime next_maint = job->last_maint.addSecs(job->hours*3600);
         if (!job->last_maint.isValid() || now > next_maint)
         {
