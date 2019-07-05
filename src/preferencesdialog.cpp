@@ -134,7 +134,7 @@ void PreferencesDialog::dialog_button_clicked(QAbstractButton *button)
 void PreferencesDialog::done(int result)
 {
     bool is_error = false;
-    QRegularExpression numeric("^[1-9](?:[0-9]{0,1})$");
+    QRegularExpression numeric("^[1-9](?:[0-9]{0,2})$");
 
     if (result == QDialog::Accepted)
     {
