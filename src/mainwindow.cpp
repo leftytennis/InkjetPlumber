@@ -796,12 +796,12 @@ void MainWindow::setup_sparkle()
     if (development_updates_)
     {
         interval = 1*3600;
-        url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=true";
+        url = "https://home.threeputt.org/InkjetPlumber/appcast.php?develop=true";
     }
     else
     {
         interval = 24*3600;
-        url = "https://threeputt.org/InkjetPlumber/appcast.php?develop=false";
+        url = "https://home.threeputt.org/InkjetPlumber/appcast.php?develop=false";
     }
 
     if (updater_)
