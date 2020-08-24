@@ -35,7 +35,7 @@ MaintenanceJob::MaintenanceJob(QObject *parent)
     , green(true)
     , blue(true)
     , last_maint(QDateTime())
-    , output_type(IJPOutputType::OutputTypeCUPS)
+    , output_type(IJPOutputType::OutputTypeGenerated)
 {
     return;
 }
@@ -55,7 +55,7 @@ MaintenanceJob::MaintenanceJob(const QString &name, QObject *parent)
     , green(true)
     , blue(true)
     , last_maint(QDateTime())
-    , output_type(IJPOutputType::OutputTypeCUPS)
+    , output_type(IJPOutputType::OutputTypeGenerated)
 {
     return;
 }

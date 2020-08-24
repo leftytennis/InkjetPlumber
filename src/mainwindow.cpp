@@ -549,7 +549,7 @@ void MainWindow::paint_swatch(QPrinter *printer, QPainter &painter, int *x, int 
 
     QFontMetrics fm(painter.fontMetrics());
 
-    int text_width = fm.width(color_name);
+    int text_width = fm.horizontalAdvance(color_name);
     int center_text = *x + (width - text_width) / 2;
     QRectF rect(center_text, y, width, height);
 
@@ -740,7 +740,7 @@ void MainWindow::read_printer_settings(const QString &printer_name)
     job->green = s.value("green", true).toBool();
     job->blue = s.value("blue", true).toBool();
     job->last_maint = s.value("last_maint", QDateTime()).toDateTime();
-    job->output_type = (IJPOutputType)s.value("output_type", IJPOutputType::OutputTypeCUPS).toInt();
+    job->output_type = (IJPOutputType)s.value("output_type", IJPOutputType::OutputTypeGenerated).toInt();
     s.endGroup();
 
     return;

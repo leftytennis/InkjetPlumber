@@ -163,7 +163,7 @@ void PreferencesDialog::done(int result)
             current_job_->red = ui->listWidget_Colors->item(6)->checkState() == Qt::Checked ? true : false;
             current_job_->green = ui->listWidget_Colors->item(7)->checkState() == Qt::Checked ? true : false;
             current_job_->blue = ui->listWidget_Colors->item(8)->checkState() == Qt::Checked ? true : false;
-            IJPOutputType output_type = IJPOutputType::OutputTypeCUPS;
+            IJPOutputType output_type = IJPOutputType::OutputTypeGenerated;
             if (ui->radiobutton_use_cups_output->isChecked())
             {
                 output_type = IJPOutputType::OutputTypeCUPS;
@@ -308,6 +308,7 @@ void PreferencesDialog::setup_printer_settings(int current_row)
                     break;
                 case IJPOutputType::OutputTypeGenerated:
                     ui->radiobutton_use_ijp_output->setChecked(true);
+                    break;
             }
             if (ui->listWidget_Colors->count() == 9)
             {
