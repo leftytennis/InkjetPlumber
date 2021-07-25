@@ -82,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent)
     QAction *action_about = app_menu_->addAction("About Inkjet Plumber...");
     action_about->setObjectName("action_about");
     action_about->setMenuRole(QAction::AboutRole);
-    action_about->setShortcut(Qt::CTRL+Qt::Key_A);
+    action_about->setShortcut(Qt::CTRL|Qt::Key_A);
 
 #if defined(Q_OS_OSX)
     QAction *action_update = app_menu_->addAction("Check for Update...");
@@ -92,7 +92,7 @@ MainWindow::MainWindow(QWidget *parent)
 #endif
 
     QAction *action_prefs = app_menu_->addAction("Preferences...");
-    action_prefs->setShortcut(Qt::CTRL+Qt::Key_Comma);
+    action_prefs->setShortcut(Qt::CTRL|Qt::Key_Comma);
     action_prefs->setObjectName("action_prefs");
     action_prefs->setMenuRole(QAction::PreferencesRole);
 
@@ -115,14 +115,14 @@ MainWindow::MainWindow(QWidget *parent)
     tray_menu_->setShortcutEnabled(true);
 
     QAction *tray_action_about = new QAction("About Inkjet Plumber...");
-    tray_action_about->setShortcut(Qt::CTRL+Qt::Key_A);
+    tray_action_about->setShortcut(Qt::CTRL|Qt::Key_A);
 
     QAction *tray_action_prefs = new QAction("Preferences...");
-    tray_action_prefs->setShortcut(Qt::CTRL+Qt::Key_Comma);
+    tray_action_prefs->setShortcut(Qt::CTRL|Qt::Key_Comma);
 
 #if defined(Q_OS_OSX)
     QAction *tray_action_update = new QAction("Check for Update...");
-    tray_action_update->setShortcut(Qt::CTRL+Qt::Key_U);
+    tray_action_update->setShortcut(Qt::CTRL|Qt::Key_U);
 #endif
 
     QAction *tray_action_show = new QAction("Show Inkjet Plumber");
@@ -371,11 +371,11 @@ void MainWindow::generate_custom_page(MaintenanceJob *job, QPrinter *printer)
     {
         text += "<strong>Page/Paper Information</strong><br/><br/>";
         text += "page size = " + page_size.name() + "<br/>";
-        text += "page width = " + QString::number(printer->pageRect().width()) + " dpi<br/>";
-        text += "page height = " + QString::number(printer->pageRect().height()) + " dpi<br/>";
-        text += "paper size = " + printer->paperName() + "<br/>";
-        text += "paper width = " + QString::number(printer->paperRect().width()) + " dpi<br/>";
-        text += "paper height = " + QString::number(printer->paperRect().height()) + " dpi<br/>";
+        text += "page width = " + QString::number(printer->pageRect(QPrinter::Inch).width()) + " dpi<br/>";
+        text += "page height = " + QString::number(printer->pageRect(QPrinter::Inch).height()) + " dpi<br/>";
+        text += "paper size = " + printer->pageLayout().pageSize().name() + "<br/>";
+        text += "paper width = " + QString::number(printer->paperRect(QPrinter::Inch).width()) + " dpi<br/>";
+        text += "paper height = " + QString::number(printer->paperRect(QPrinter::Inch).height()) + " dpi<br/>";
     }
 
     if (page_paper_info_ || printer_info_)
@@ -385,7 +385,7 @@ void MainWindow::generate_custom_page(MaintenanceJob *job, QPrinter *printer)
         QTextDocument doc;
         doc.setDefaultFont(tahoma);
         doc.documentLayout()->setPaintDevice(painter.device());
-        doc.setPageSize(printer->pageRect().size());
+        doc.setPageSize(printer->pageRect(QPrinter::Inch).size());
         doc.setHtml(text);
         doc.drawContents(&painter);
         painter.restore();
@@ -597,12 +597,10 @@ void MainWindow::print_generated_test_page(MaintenanceJob *job)
     printer.setCopyCount(1);
     printer.setCreator("Inkjet Plumber");
     printer.setDocName("Inkjet Plumber Maintenance Job");
-    printer.setDoubleSidedPrinting(false);
     printer.setDuplex(QPrinter::DuplexNone);
     printer.setFullPage(true);
     printer.setPageLayout(page_layout);
-    printer.setPageSize(QPrinter::Letter);
-    printer.setPaperSize(QPrinter::Letter);
+    printer.setPageSize(QPageSize(QPageSize::Letter));
     printer.setPaperSource(QPrinter::Auto);
     printer.setPrinterName(job->printer_name);
 
@@ -772,7 +770,7 @@ void MainWindow::run_maint_job(MaintenanceJob *job)
     log_message("Maintenance job sent to " + job->printer_name + ", next job = " + next_maint.toString("yyyy-MM-dd hh:mm:ss."));
     tray_.showMessage("Inkjet Plumber", "Maintenance job sent to " + job->printer_name);
 
-    QDateTime earliest_date(QDate(2016,7,1));
+    QDateTime earliest_date(QDate(2016,7,1), QTime());
 
     if (job->last_maint.isValid() && job->last_maint > earliest_date)
     {
@@ -855,7 +853,7 @@ void MainWindow::show_printer_info(const QString &printer_name) const
 
     QString last_maint;
     QString next_maint;
-    QDateTime epoch(QDate(2016,7,1));
+    QDateTime epoch(QDate(2016,7,1), QTime());
 
     if (job->last_maint.isValid() && job->last_maint > epoch)
     {

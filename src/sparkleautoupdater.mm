@@ -120,7 +120,7 @@ QDateTime SparkleAutoUpdater::lastUpdateCheckDate()
         ti = [aNSDate timeIntervalSince1970];
     }
 
-    return QDateTime::fromTime_t(ti);
+    return QDateTime::fromMSecsSinceEpoch(ti);
 }
 
 void SparkleAutoUpdater::resetUpdateCycle()

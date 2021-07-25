@@ -292,7 +292,7 @@ void PreferencesDialog::setup_printer_settings(int current_row)
             ui->checkBox_run_maintenance->setChecked(job->enabled);
             ui->lineEdit_hours->setEnabled(job->enabled);
             ui->lineEdit_hours->setText(QString::number(job->hours));
-            QDateTime epoch(QDate(2016,7,1));
+            QDateTime epoch(QDate(2016,7,1), QTime());
             if (current_job_->last_maint.isValid() && current_job_->last_maint > epoch)
             {
                 ui->label_last_maint->setText(current_job_->last_maint.toString("yyyy-MM-dd hh:mm:ss"));
