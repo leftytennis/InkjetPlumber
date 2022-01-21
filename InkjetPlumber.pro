@@ -1,7 +1,7 @@
 
 TEMPLATE = subdirs
 
-CONFIG += ordered sdk_no_version_check
+CONFIG += ordered
 
 SUBDIRS = \
     src
