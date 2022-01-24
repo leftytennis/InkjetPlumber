@@ -8,6 +8,8 @@ QT       += core gui printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
+CONFIG   += x86 arm64
+
 TARGET = InkjetPlumber
 TEMPLATE = app
 
