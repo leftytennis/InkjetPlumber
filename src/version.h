@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2022 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -20,6 +20,6 @@
 #ifndef VERSION_H
 #define VERSION_H
 
-#define INKJETPLUMBER_VERSION   "0.9.13"
+#define INKJETPLUMBER_VERSION   "0.9.14"
 
 #endif // VERSION_H

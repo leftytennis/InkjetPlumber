@@ -1,5 +1,5 @@
 //
-//    Copyright (c) 2019 Jeff Thompson <jefft@threeputt.org>
+//    Copyright (c) 2022 Jeff Thompson <jefft@threeputt.org>
 //
 //    This file is part of Inkjet Plumber.
 //
@@ -134,7 +134,7 @@ void PreferencesDialog::dialog_button_clicked(QAbstractButton *button)
 void PreferencesDialog::done(int result)
 {
     bool is_error = false;
-    QRegularExpression numeric("^[1-9](?:[0-9]{0,2})$");
+    QRegularExpression numeric(R"(^[1-9](?:[0-9]{0,2})$)");
 
     if (result == QDialog::Accepted)
     {
