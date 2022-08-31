@@ -9,9 +9,15 @@ I make no claims that Inkjet Plumber will prevent clogs or reduce your ink costs
 it's generally accepted by many people that it's best to exercise your inkjet printer rather
 than leave idle (or powered off) for long periods of time.
 
-Many Windows users use [QImage](http://www.ddisoftware.com/qimage-u/index.html) for this purpose,
-however, [QImage](http://www.ddisoftware.com/qimage-u/index.html) only runs on Windows and
+Many Windows users use [QImage Ultimate](http://www.ddisoftware.com/qimage-u/index.html) for this purpose,
+however, [QImage Ultimate](http://www.ddisoftware.com/qimage-u/index.html) only runs on Windows and
 I was not able to find a comparable application for the Mac.
+
+*Update:* [Qimage One](https://binartem.com/(https://www.binartem.com/qimageone/) is now available for
+Windows and macOS. Qimage One
+provides the capability to send a scheduled purge sheet to your printers which replaces the
+functionality provided by InkjetPlumber. I highly recommend InkjetPlumber users switch to Qimage One,
+it's a great program for printing!
 
 ## Development
 
