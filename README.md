@@ -1,4 +1,10 @@
-# Inkjet Plumber                                                        
+# Inkjet Plumber
+## *** Notice ***
+Inkjet Plumber is no longer actively supported. The reason it was created was an attempt
+to prevent your printer from being idle too long and performing a costly cleaning
+cycle. This thinking has been proven not to be true so there's really no reason
+Inkjet Plumber is needed. I'm leaving the project on GitHub in case someone wishes to
+fork the project, etc. Regards
 ## Overview
 Inkjet Plumber is an application for the Mac that allows you to send a small print job to
 one or more of your printers at an interval of your choosing. It was written with infrequent
